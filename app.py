@@ -45,6 +45,10 @@ def chatbot_page():
 def contact_page():
     return render_template('contact.html')
 
+@app.route('/profile')
+def profile_page():
+    return render_template('profile.html')
+
 @app.route('/analytics')
 def analytics_page():
     # Note: You have not provided the 'analytics.html' file.

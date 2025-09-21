@@ -168,4 +168,48 @@ document.addEventListener('DOMContentLoaded', function() {
             scoreDiv.scrollIntoView({ behavior: 'smooth' });
         }
     }
+
+    // --- Logic for profile.html ---
+    const avatarImg = document.getElementById('avatarImg');
+    if (avatarImg) {
+        // 1) Avatar upload behavior
+        const avatarInput = document.getElementById('avatarInput');
+        avatarInput.addEventListener('change', (e) => {
+            const f = e.target.files && e.target.files[0];
+            if (!f) return;
+            if (!f.type.startsWith('image/')) {
+                alert('Please upload an image file.');
+                return;
+            }
+            const reader = new FileReader();
+            reader.onload = () => { avatarImg.src = reader.result; };
+            reader.readAsDataURL(f);
+        });
+        
+        document.querySelector('.avatar-edit').addEventListener('click', () => avatarInput.click());
+
+        // 2) Doughnut chart (progress)
+        const ctx = document.getElementById('progressChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Completed', 'In Progress', 'Not Started'],
+                datasets: [{
+                    data: [65, 20, 15],
+                    backgroundColor: ['#2ecc71', '#f39c12', '#95a5a6'],
+                    hoverOffset: 6,
+                    borderWidth: 0,
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: false
+                    }
+                },
+            }
+        });
+    }
 });
