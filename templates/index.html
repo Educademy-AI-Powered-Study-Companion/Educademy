@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Educademy</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Poppins', sans-serif; background-color: #f8f9fc; color: #333; }
+
+    header { background: #1e3a8a; color: white; padding: 15px 30px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; }
+    header h1 { font-size: 1.6rem; }
+    nav ul { list-style: none; display: flex; gap: 20px; }
+    nav a { color: black; text-decoration: none; font-weight: 500; transition: color 0.3s; }
+    nav a:hover { color: #facc15; }
+
+    .hero { background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%); color: white; text-align: center; padding: 60px 20px; }
+    .hero h2 { font-size: 2.2rem; margin-bottom: 10px; }
+    .hero p { font-size: 1.1rem; max-width: 600px; margin: auto; }
+
+    .container { max-width: 1000px; margin: 40px auto; background: white; padding: 25px; border-radius: 12px; box-shadow: 0 5px 20px rgba(0,0,0,0.1); }
+    textarea { width: 100%; min-height: 120px; padding: 12px; border: 1px solid #ccc; border-radius: 10px; font-size: 1rem; resize: none; outline: none; margin-bottom: 15px; }
+    .btn-group { display: flex; gap: 10px; margin-bottom: 20px; flex-wrap: wrap; }
+    button { background: #1e3a8a; border: none; padding: 10px 16px; border-radius: 8px; color: white; font-size: 1rem; font-weight: 600; cursor: pointer; transition: 0.3s; }
+    button:hover { background: #2a4ec5; }
+    input[type="file"] { padding: 8px; border-radius: 8px; border: 1px solid #ccc; }
+    h2 { font-size: 1.4rem; margin-top: 20px; border-bottom: 2px solid #ddd; padding-bottom: 5px; }
+    ul { list-style: none; padding: 0; }
+    li { background: #f3f4f6; padding: 10px; border-radius: 8px; margin-bottom: 8px; }
+
+    footer { background: #1e3a8a; color: white; text-align: center; padding: 20px 10px; margin-top: 50px; }
+    footer a { color: #facc15; text-decoration: none; }
+
+    /* Loading Spinner */
+    .spinner {
+      display: none;
+      margin: 20px auto;
+      border: 6px solid #f3f3f3;
+      border-top: 6px solid #1e3a8a;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin { 100% { transform: rotate(360deg); } }
+
+    /* Progress Bar */
+    .progress-container {
+      width: 100%;
+      background: #eee;
+      border-radius: 10px;
+      margin: 15px 0;
+      display: none;
+    }
+    .progress-bar {
+      width: 0%;
+      height: 10px;
+      background: #1e3a8a;
+      border-radius: 10px;
+      transition: width 0.3s;
+    }
+
+    .correct { color: green; font-weight: bold; }
+    .wrong { color: red; font-weight: bold; }
+
+    .feedback-box {
+      background: #f9fafb;
+      border-left: 5px solid #1e3a8a;
+      padding: 12px;
+      border-radius: 8px;
+      margin-top: 10px;
+    }
+
+    @media (max-width: 768px) { .btn-group { flex-direction: column; } }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <header>
+    <h1>Educademy</h1>
+    <nav>
+      <ul>
+        <li><a href="#">Home</a></li>
+        <li><a href="#">Features</a></li>
+        <li><a href="#">Contact</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <!-- HERO -->
+  <section class="hero">
+    <h2>Your AI-powered Learning Companion</h2>
+    <p>Summarize notes, generate MCQs, and learn smarter with Educademy.</p>
+  </section>
+
+  <!-- MAIN CONTENT -->
+  <main>
+    <div class="container">
+      <textarea id="inputText" placeholder="Paste or speak your study text..."></textarea>
+
+      <div class="btn-group">
+        <button onclick="recordVoice()">🎤 Speak</button>
+        <button onclick="submitText()">✨ Summarize Text</button>
+        <input type="file" id="uploadFile" accept=".pdf,.docx">
+        <button onclick="uploadFile()">📄 Summarize File</button>
+      </div>
+
+      <!-- Spinner + Progress Bar -->
+      <div class="spinner" id="spinner"></div>
+      <div class="progress-container" id="progressContainer">
+        <div class="progress-bar" id="progressBar"></div>
+      </div>
+
+      <h2>📝 Summary</h2>
+      <p id="summary">Your summary will appear here...</p>
+
+      <h2>❓ MCQs</h2>
+      <form id="mcq-form"></form>
+      <button type="button" onclick="submitMCQ()">Submit Answers</button>
+      <p id="score"></p>
+
+      <h2>📖 Subjective Answer Evaluation</h2>
+      <textarea id="studentAnswer" placeholder="Write your answer here..."></textarea>
+      <button type="button" onclick="evaluateAnswer()">Evaluate Answer</button>
+      <div id="feedback" class="feedback-box"></div>
+    </div>
+  </main>
+
+  <!-- FOOTER -->
+  <footer>
+    <p>© 2025 Educademy. All Rights Reserved. | <a href="#">Privacy Policy</a></p>
+  </footer>
+
+  <script src="/static/voice.js"></script>
+  <script>
+    function showLoading() {
+      document.getElementById("spinner").style.display = "block";
+      document.getElementById("progressContainer").style.display = "block";
+      document.getElementById("progressBar").style.width = "10%";
+
+      let progress = 10;
+      window.loadingInterval = setInterval(() => {
+        if (progress < 90) {
+          progress += 10;
+          document.getElementById("progressBar").style.width = progress + "%";
+        }
+      }, 800);
+    }
+
+    function hideLoading() {
+      clearInterval(window.loadingInterval);
+      document.getElementById("spinner").style.display = "none";
+      document.getElementById("progressContainer").style.display = "none";
+      document.getElementById("progressBar").style.width = "0%";
+    }
+
+    async function submitText() {
+      const text = document.getElementById("inputText").value;
+      if (!text.trim()) { alert("Please enter text first!"); return; }
+
+      showLoading();
+      const res = await fetch('/summarize', {
+        method: 'POST',
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        body: 'text=' + encodeURIComponent(text)
+      });
+      const data = await res.json();
+      hideLoading();
+      showResult(data);
+    }
+
+    async function uploadFile() {
+      const fileInput = document.getElementById("uploadFile");
+      if (fileInput.files.length === 0) { alert("Please select a file!"); return; }
+
+      const formData = new FormData();
+      formData.append("file", fileInput.files[0]);
+
+      showLoading();
+      const res = await fetch('/summarize', { method: 'POST', body: formData });
+      const data = await res.json();
+      hideLoading();
+      showResult(data);
+    }
+
+    function showResult(data) {
+      if (data.error) {
+        document.getElementById('summary').innerText = data.error;
+        document.getElementById('mcq-form').innerHTML = "";
+        return;
+      }
+      document.getElementById('summary').innerText = data.summary;
+      loadMCQs(data.mcqs);
+    }
+
+    function loadMCQs(mcqs) {
+      const mcqForm = document.getElementById("mcq-form");
+      mcqForm.innerHTML = "";
+
+      mcqs.forEach((mcq, index) => {
+        const questionDiv = document.createElement("div");
+        questionDiv.innerHTML = `<p><b>Q${index+1}:</b> ${mcq.question}</p>`;
+        mcq.options.forEach(option => {
+          questionDiv.innerHTML += `
+            <label>
+              <input type="radio" name="q${index}" value="${option}">
+              ${option} <span id="feedback-q${index}-${option}"></span>
+            </label><br>
+          `;
+        });
+        questionDiv.innerHTML += `<input type="hidden" id="answer-q${index}" value="${mcq.answer}">`;
+        mcqForm.appendChild(questionDiv);
+      });
+    }
+
+    function submitMCQ() {
+      let score = 0;
+      let total = document.querySelectorAll('[id^="answer-q"]').length;
+
+      for (let i = 0; i < total; i++) {
+        const correctAnswer = document.getElementById(`answer-q${i}`).value;
+        const selected = document.querySelector(`input[name="q${i}"]:checked`);
+        if (selected) {
+          if (selected.value === correctAnswer) {
+            score++;
+            document.getElementById(`feedback-q${i}-${selected.value}`).innerHTML = "✅";
+            document.getElementById(`feedback-q${i}-${selected.value}`).className = "correct";
+          } else {
+            document.getElementById(`feedback-q${i}-${selected.value}`).innerHTML = "❌";
+            document.getElementById(`feedback-q${i}-${selected.value}`).className = "wrong";
+            document.getElementById(`feedback-q${i}-${correctAnswer}`).innerHTML = "✅";
+            document.getElementById(`feedback-q${i}-${correctAnswer}`).className = "correct";
+          }
+        } else {
+          document.getElementById(`feedback-q${i}-${correctAnswer}`).innerHTML = "✅";
+          document.getElementById(`feedback-q${i}-${correctAnswer}`).className = "correct";
+        }
+      }
+      document.getElementById("score").innerText = `✅ Your Score: ${score} / ${total}`;
+    }
+
+    function evaluateAnswer() {
+      const answer = document.getElementById("studentAnswer").value.trim();
+      const feedbackBox = document.getElementById("feedback");
+      if (!answer) {
+        feedbackBox.innerHTML = "<b>Please write an answer first.</b>";
+        return;
+      }
+
+      // Simple keyword-based rubric demo
+      let score = 0;
+      let tips = [];
+
+      if (answer.length > 50) score += 3; else tips.push("Expand your answer with more details.");
+      if (/example|instance/i.test(answer)) score += 2; else tips.push("Add an example to strengthen your answer.");
+      if (/because|therefore|hence/i.test(answer)) score += 2; else tips.push("Explain reasoning with connecting words.");
+      if (/definition|means|refers/i.test(answer)) score += 3; else tips.push("Include a clear definition or explanation.");
+
+      if (score > 10) score = 10;
+
+      feedbackBox.innerHTML = `<b>Score:</b> ${score}/10<br><b>Feedback:</b><ul>` +
+        tips.map(t => `<li>${t}</li>`).join("") + "</ul>";
+    }
+  </script>
+</body>
+</html>
