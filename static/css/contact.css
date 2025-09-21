@@ -1,0 +1,116 @@
+body {
+    margin: 0;
+    font-family: 'Segoe UI', Arial, Helvetica, sans-serif;
+    background: #ffffff;
+    color: #050505;
+}
+.navbar {
+    position: sticky;
+    top: 0;
+    background: #ffffff;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0.7em 3vw;
+    z-index: 10;
+}
+.navbar .logo {
+    font-weight: bold;
+    font-size: 1.7em;
+    color: #2d7be5;
+    letter-spacing: 1px;
+    user-select: none;
+}
+.nav-links {
+    display: flex;
+    gap: 2vw;
+}
+.nav-link {
+    text-decoration: none;
+    color: #2d3a4a;
+    font-weight: 500;
+    transition: color 0.3s, transform 0.2s;
+    padding: 0.3em 0.5em;
+    border-radius: 6px;
+    background: #eaf3ff;
+    color: #222c3a;
+}
+.nav-link:hover {
+    color: #2d7be5;
+    background: #eaf3ff;
+    transform: translateY(-2px);
+}
+.profile-btn {
+    background: #4a90e2;
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    border: none;
+    cursor: pointer;
+    color: #fff;
+    font-weight: 600;
+    margin-left: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.2em;
+    transition: background 0.3s, transform 0.2s;
+    user-select: none;
+}
+.profile-btn:hover {
+    background: #6aa8ff;
+    transform: scale(1.1);
+}
+.contact-section {
+    max-width: 900px;
+    margin: 40px auto;
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 4px 24px rgba(0,0,0,0.15);
+    padding: 40px 30px;
+}
+.contact-title {
+    font-size: 2.2em;
+    color: #2d7be5;
+    margin-bottom: 18px;
+    font-weight: 700;
+    text-align: center;
+}
+.contact-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 32px;
+    justify-content: center;
+}
+.contact-card {
+    background: #f7f9fc;
+    border-left: 4px solid #2d7be5;
+    border-radius: 12px;
+    padding: 24px 28px;
+    min-width: 240px;
+    color: #e0e6f0;
+    box-shadow: 0 2px 12px rgba(74, 110, 219, 0.08);
+    flex: 1 1 260px;
+    max-width: 320px;
+}
+.contact-card h2 {
+    font-size: 1.3em;
+    margin-top: 0;
+    margin-bottom: 8px;
+    color: #1e2a44;
+}
+.contact-card p {
+    margin: 4px 0;
+    color: #2d3a4a;
+    font-size: 1em;
+}
+@media (max-width: 900px) {
+    .contact-section {
+        padding: 18px 6vw;
+    }
+    .contact-list {
+        flex-direction: column;
+        gap: 18px;
+    }
+}

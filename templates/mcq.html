@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MCQ Generator</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/mcq.css') }}">
+</head>
+<body>
+  <div class="navbar">
+        <button class="logo" onclick="location.href='/'" style="background:none;border:none;cursor:pointer;color:#2d7be5;font-size:1.7em;font-weight:bold;letter-spacing:1px;user-select:none;">Educademy</button>
+        <nav class="nav-links" role="navigation" aria-label="Primary Navigation">
+            <a href="" class="nav-link">Courses</a>
+            <a href="#about" class="nav-link">About</a>
+            <a href="/contact" class="nav-link">Contact</a>
+            <button class="profile-btn" aria-label="Profile" title="Profile" onclick="location.href='profile.html'">👤</button>
+        </nav>
+  </div>
+
+  <div class="container">
+    <h2>❓ Generate MCQs</h2>
+    <form id="mcqForm" enctype="multipart/form-data">
+      <textarea name="text" placeholder="Paste your text here..." aria-label="Text input for generating MCQs"></textarea>
+      <p>OR Upload File (PDF/DOCX):</p>
+      <input type="file" name="file" aria-label="Upload file">
+      <button type="submit">Generate MCQs</button>
+    </form>
+    <div id="loading" style="display: none;">⏳ Generating MCQs, please wait...</div>
+    <div id="mcqResult"></div>
+    <div id="quizScore"></div>
+  </div>
+
+  <footer>
+    <p style="text-align:center; padding:1em; font-size:0.9em; color:#555;">
+      &copy; 2024 Educademy. All rights reserved.
+    </p>
+  </footer>
+  <script src="{{ url_for('static', filename='js/script.js') }}" defer></script>
+</body>
+</html>

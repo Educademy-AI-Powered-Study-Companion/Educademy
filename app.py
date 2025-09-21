@@ -1,174 +1,150 @@
 from flask import Flask, render_template, request, jsonify
-from transformers import pipeline
-from sentence_transformers import SentenceTransformer, util
-import torch
-import random
+from pymongo import MongoClient
+from datetime import datetime
 import os
-from PyPDF2 import PdfReader
-import docx
+
+# Import your modules directly (Corrected imports)
+from modules import content_processor
+from modules import mcq_generator
+from modules import evaluator
+from modules import utils
+from modules import rag_chatbot
+from modules import config # Import config to use its variables
 
 app = Flask(__name__)
-UPLOAD_FOLDER = 'uploads'
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+# Use the UPLOAD_DIRECTORY from the config file
+app.config['UPLOAD_FOLDER'] = config.UPLOAD_DIRECTORY
 
-# Load Hugging Face summarizer
-summarizer = pipeline("summarization", model="facebook/bart-large-cnn")
+# Initialize the RAG chatbot once
+bot = rag_chatbot.RAGChatbot()
 
-# Load sentence transformer for grading answers
-embedding_model = SentenceTransformer('all-MiniLM-L6-v2')
+# ----------------- MongoDB Setup -----------------
+# It's better practice to not hardcode connection strings, but for now this is fine.
+client = MongoClient("mongodb://localhost:27017/")
+db = client["EduMentorDB"]
+students_collection = db["students"]
 
-
+# ----------------- Routes -----------------
 @app.route('/')
 def home():
     return render_template('index.html')
 
+@app.route('/summary')
+def summary_page():
+    return render_template('summary.html')
 
+@app.route('/mcq')
+def mcq_page():
+    return render_template('mcq.html')
+    
+@app.route('/chatbot')
+def chatbot_page():
+    return render_template('chatbot.html')
+
+@app.route('/contact')
+def contact_page():
+    return render_template('contact.html')
+
+@app.route('/analytics')
+def analytics_page():
+    # Note: You have not provided the 'analytics.html' file.
+    # This will cause an error until you create it in the 'templates' folder.
+    return render_template('analytics.html')
+
+# ----------------- Process Document (Summarize & Generate MCQs) -----------------
 @app.route('/summarize', methods=['POST'])
 def summarize():
     text = ""
+    file = request.files.get('file')
 
-    # --- Case 1: Pasted text ---
+    # Case 1: Pasted text
     if 'text' in request.form and request.form['text'].strip():
         text = request.form['text']
+    # Case 2: Uploaded file
+    elif file and file.filename:
+        # Corrected function call with upload folder path
+        text = utils.extract_text_from_file(file, app.config['UPLOAD_FOLDER'])
 
-    # --- Case 2: File upload ---
-    elif 'file' in request.files:
-        file = request.files['file']
-        if file.filename.endswith(".pdf"):
-            text = extract_text_from_pdf(file)
-        elif file.filename.endswith(".docx"):
-            text = extract_text_from_docx(file)
-        else:
-            return jsonify({'error': 'Unsupported file type!'}), 400
+    if not text.strip() or "Error:" in text:
+        return jsonify({'error': 'No text provided or file could not be read!'}), 400
 
-    if not text.strip():
-        return jsonify({'error': 'No text found in input or uploaded file.'}), 400
+    # Generate summary (Corrected function call)
+    summary = content_processor.generate_bullet_point_summary(text)
 
-    # --- SUMMARIZATION ---
-    summary = summarize_text(text)
-
-    # --- MCQ GENERATION (no NER, simple style) ---
-    mcqs = generate_mcqs(summary, max_mcqs=5)
+    # Generate MCQs (Corrected function call using config)
+    mcqs = mcq_generator.generate_meaningful_mcqs(summary, num_questions=config.MAX_MCQS_TO_GENERATE)
 
     return jsonify({'summary': summary, 'mcqs': mcqs})
 
+# ----------------- RAG Chatbot Query -----------------
+@app.route('/ask-ai', methods=['POST'])
+def ask_ai():
+    question = request.form.get('question', '').strip()
+    file = request.files.get('file')
 
+    # If a file is uploaded, process and index it
+    if file and file.filename:
+        document_text = utils.extract_text_from_file(file, app.config['UPLOAD_FOLDER'])
+        if "Error:" not in document_text and document_text.strip():
+            bot.setup_document(document_text)
+            # If there's no question, just confirm the document is ready
+            if not question:
+                return jsonify({'answer': f"'{file.filename}' has been processed. You can now ask questions about it."})
+        else:
+            return jsonify({'answer': "Sorry, I could not read the document."})
+    
+    # If there is a question, get an answer
+    if not question:
+        return jsonify({'answer': "Please ask a question."})
+
+    answer = bot.answer_query(question)
+    return jsonify({'answer': answer})
+
+
+# ----------------- Evaluate Student Answer -----------------
 @app.route('/grade', methods=['POST'])
 def grade():
-    """Grade a student’s subjective answer against the generated summary."""
     student_answer = request.json.get("answer", "")
     reference = request.json.get("reference", "")
 
     if not student_answer.strip():
         return jsonify({"score": 0, "feedback": "⚠️ Please write an answer first."})
 
-    # Encode both texts
-    emb_student = embedding_model.encode(student_answer, convert_to_tensor=True)
-    emb_ref = embedding_model.encode(reference, convert_to_tensor=True)
-
-    # Similarity score
-    similarity = util.pytorch_cos_sim(emb_student, emb_ref).item()
-
-    # Scale similarity → score out of 10
-    score = round(similarity * 10, 1)
-
-    # Feedback
-    if score > 8:
-        feedback = "🌟 Excellent! Your answer is very close to the key points."
-    elif score > 5:
-        feedback = "👍 Good attempt, but you missed some important details."
-    else:
-        feedback = "⚡ Needs improvement. Try covering more points from the summary."
-
+    # Corrected function call
+    score, feedback = evaluator.evaluate_student_answer(student_answer, reference)
     return jsonify({"score": score, "feedback": feedback})
 
+# ----------------- Submit MCQs & Save to MongoDB -----------------
+@app.route('/submit_mcqs', methods=['POST'])
+def submit_mcqs():
+    data = request.json
+    student_name = data.get("student", "Anonymous")
+    score = data.get("score", 0)
+    total = data.get("total", 0)
+    mcqs = data.get("mcqs", [])
 
-# --------- HELPERS ---------
-def extract_text_from_pdf(file):
-    text = ""
-    try:
-        pdf_reader = PdfReader(file)
-        for page in pdf_reader.pages:
-            page_text = page.extract_text()
-            if page_text:
-                text += page_text + " "
-    except Exception as e:
-        print(f"PDF extraction error: {e}")
-    return text.strip()
+    if not all([isinstance(score, int), isinstance(total, int), total > 0]):
+        return jsonify({"error": "Invalid score or total."}), 400
 
+    record = {
+        "student": student_name,
+        "score": score,
+        "total": total,
+        "percentage": round((score / total) * 100, 2),
+        "mcqs": mcqs,
+        "timestamp": datetime.utcnow()
+    }
+    students_collection.insert_one(record)
+    return jsonify({"message": "Result saved successfully!", "data": record})
 
-def extract_text_from_docx(file):
-    text = ""
-    try:
-        doc = docx.Document(file)
-        for para in doc.paragraphs:
-            if para.text:
-                text += para.text + " "
-    except Exception as e:
-        print(f"DOCX extraction error: {e}")
-    return text.strip()
+# ----------------- Fetch Student Analytics -----------------
+@app.route('/get_analytics/<student>', methods=['GET'])
+def get_analytics(student):
+    # Prevents NoSQL injection by ensuring student is treated as a string
+    records = list(students_collection.find({"student": str(student)}, {"_id": 0}))
+    return jsonify(records)
 
-
-def summarize_text(text):
-    if not text.strip():
-        return "Error: No text to summarize."
-
-    # Split text into chunks (~800 words)
-    words = text.split()
-    chunk_size = 800
-    chunks = [" ".join(words[i:i + chunk_size]) for i in range(0, len(words), chunk_size)]
-
-    summaries = []
-    for chunk in chunks:
-        if chunk.strip():  # only non-empty chunks
-            try:
-                result = summarizer(chunk, max_length=400, min_length=100, do_sample=False)
-                if result:
-                    summaries.append(result[0]['summary_text'])
-            except Exception as e:
-                print(f"Summarizer error: {e}")
-
-    if not summaries:
-        return "Error: Could not generate summary. Possibly empty or unreadable input."
-
-    return " ".join(summaries)
-
-
-def generate_mcqs(text, max_mcqs=5):
-    """
-    Simple MCQ generator without NER.
-    Uses sentences and keyword blanks.
-    """
-    sentences = text.split(". ")
-    mcq_list = []
-
-    for sent in sentences:
-        if len(mcq_list) >= max_mcqs or len(sent.split()) < 5:
-            continue
-
-        words = sent.split()
-        keyword = random.choice(words[1:-1])  # avoid first/last word
-        question = sent.replace(keyword, "_____")
-
-        # Fake options
-        wrong_options = random.sample(words, min(3, len(words)))
-        if keyword in wrong_options:
-            wrong_options.remove(keyword)
-        while len(wrong_options) < 3:
-            wrong_options.append(f"Option_{random.randint(1,100)}")
-
-        options = [keyword] + wrong_options
-        random.shuffle(options)
-
-        mcq_list.append({
-            "question": question.strip(),
-            "options": options,
-            "answer": keyword
-        })
-
-    return mcq_list
-
-
+# ----------------- Run Flask App -----------------
 if __name__ == '__main__':
-    os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+    os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
     app.run(debug=True)

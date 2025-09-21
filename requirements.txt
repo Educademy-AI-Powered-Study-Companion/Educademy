@@ -1,5 +1,10 @@
 flask
-openai
-pyttsx3
-speechrecognition
-pyaudio
+pymongo
+sentence-transformers
+torch
+langchain
+langchain-community
+langchain-core
+faiss-cpu
+python-docx
+PyPDF2
