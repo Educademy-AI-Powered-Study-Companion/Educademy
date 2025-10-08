@@ -15,5 +15,4 @@ timeout /t 1 /nobreak >nul
 echo Opening application in your default browser...
 start "" http://127.0.0.1:5000/
 
-
 exit
