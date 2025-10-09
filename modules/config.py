@@ -21,7 +21,7 @@ EMBEDDING_MODEL_ID = "BAAI/bge-large-en-v1.5"
 # Model for the interactive RAG chatbot.
 # Should be a powerful, instruction-following model.
 # Example: "mistral", "llama3"
-CHATBOT_MODEL_ID = "mistral"
+CHATBOT_MODEL_ID = "llama3:8b"
 
 # Model for content processing tasks like summarization and MCQ generation.
 # Can be a smaller, faster model.
