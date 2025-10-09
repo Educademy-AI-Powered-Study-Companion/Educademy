@@ -1,9 +1,11 @@
+/* General Body and Navbar Styles */
 body {
     margin: 0;
     font-family: 'Segoe UI', Arial, Helvetica, sans-serif;
     background: #f6f8fa;
     color: #222c3a;
 }
+
 .navbar {
     position: sticky;
     top: 0;
@@ -15,6 +17,7 @@ body {
     padding: 0.7em 3vw;
     z-index: 10;
 }
+
 .navbar .logo {
     font-weight: bold;
     font-size: 1.7em;
@@ -22,10 +25,13 @@ body {
     letter-spacing: 1px;
     user-select: none;
 }
+
 .nav-links {
     display: flex;
     gap: 2vw;
+    align-items: center;
 }
+
 .nav-link {
     text-decoration: none;
     color: #2d3a4a;
@@ -33,15 +39,16 @@ body {
     transition: color 0.3s, transform 0.2s;
     padding: 0.3em 0.5em;
     border-radius: 6px;
-    user-select: none;
 }
+
 .nav-link:hover {
     color: #2d7be5;
     background: #eaf3ff;
     transform: translateY(-2px);
 }
+
 .profile-btn {
-    background: #2d7be5;
+    background: #4a90e2;
     width: 42px;
     height: 42px;
     border-radius: 50%;
@@ -57,60 +64,139 @@ body {
     transition: background 0.3s, transform 0.2s;
     user-select: none;
 }
+
 .profile-btn:hover {
     background: #6aa8ff;
     transform: scale(1.1);
 }
+
+/* --- NEW --- Welcome Section Styles */
+.welcome-section {
+    text-align: center;
+    padding: 3em 2em;
+}
+
+.welcome-icon {
+    font-size: 3.5em;
+    color: #2d7be5;
+    margin-bottom: 0.2em;
+}
+
+.welcome-icon::before {
+    content: '📝'; /* Adds the summary icon */
+}
+
+.welcome-section h2 {
+    color: #1e2a44;
+    margin-top: 0;
+}
+
+/* Container and Form Styles */
 .container {
     max-width: 800px;
     margin: 2em auto;
-    padding: 2em;
+    padding: 2.5em;
     background: #fff;
-    box-shadow: 0 2px 12px rgba(45,123,229,0.07);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
     border-radius: 12px;
 }
-h2 {
-    color: #2d7be5;
-    margin-top: 0;
-}
+
 form {
     display: flex;
     flex-direction: column;
 }
+
 textarea {
     width: 100%;
     height: 150px;
     margin-bottom: 1em;
-    padding: 10px;
-    border-radius: 6px;
-    border: 1px solid #bcdcff;
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid #d0d7de;
     font-size: 1em;
     background: #f6f8fa;
     color: #222c3a;
     box-sizing: border-box;
+    resize: vertical;
 }
+
+textarea:focus {
+    outline: none;
+    border-color: #2d7be5;
+    box-shadow: 0 0 0 3px rgba(45, 123, 229, 0.2);
+}
+
+.upload-label {
+    text-align: center;
+    font-weight: 500;
+    color: #555;
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
+}
+
 input[type="file"] {
-    margin-bottom: 1em;
+    margin-bottom: 1.5em;
+    font-size: 0.95em;
+    padding: 8px;
+    border: 1px solid #d0d7de;
+    border-radius: 6px;
 }
-button {
-    padding: 10px;
+
+button[type="submit"] {
+    padding: 12px;
     background-color: #2d7be5;
     color: #fff;
     border: none;
-    border-radius: 6px;
+    border-radius: 8px;
     cursor: pointer;
-    font-size: 1em;
+    font-size: 1.1em;
     font-weight: 500;
-    transition: background 0.3s;
+    transition: background-color 0.3s, transform 0.2s;
 }
-button:hover {
-    background-color: #6aa8ff;
+
+button[type="submit"]:hover {
+    background-color: #1c6ad4;
+    transform: translateY(-2px);
 }
-#summaryResult h3 {
-    color: #2d7be5;
-}
+
 #summaryResult {
     margin-top: 1.5em;
     padding-top: 1.5em;
     border-top: 1px solid #e0e6f0;
+}
+
+#summaryResult h3 {
+    color: #2d7be5;
+}
+
+/* Footer Styles */
+footer {
+    margin-top: 30px;
+    padding: 28px 4vw;
+    background: #fff;
+    border-top: 1px solid #eef2f6;
+}
+
+.footer-grid {
+    max-width: 1180px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 20px;
+}
+
+.footer-grid h4 { margin-bottom: 8px }
+
+.footer-grid a {
+    color: #55606a;
+    text-decoration: none;
+    display: block;
+    margin: 4px 0;
+}
+
+.copyright {
+    text-align: center;
+    color: #8b94a0;
+    margin-top: 14px;
+    font-size: 0.92rem;
 }

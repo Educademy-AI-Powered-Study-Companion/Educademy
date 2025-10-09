@@ -18,12 +18,52 @@
       <span class="nav-link" onclick="openModal()">Sign In</span>
       <a href="#about" class="nav-link">About</a>
       <a href="/contact" class="nav-link">Contact</a>
+      <button class="profile-btn" onclick="location.href='/profile'">👤</button>
     </nav>
   </div>
 
   <div class="main-content">
-    <div class="main-text"><h1 class="welcome-text">Welcome <br> to Educademy</h1></div>
-    <div class="wave"></div><div class="wave"></div><div class="wave"></div>
+    <div class="main-text">
+      <h1 class="welcome-text">Welcome <br> to Educademy</h1>
+      <p class="subtitle">Your personalized path to smarter learning. We adapt to you, so you can achieve more.</p>
+    </div>
+    <div class="main-image-container">
+      <img src="https://images.unsplash.com/photo-1448932223592-d1fc686e76ea?w=1200&auto=format&fit=crop&q=60" alt="Person studying at a desk">
+    </div>
+  </div>
+
+  <div class="features-section">
+    <h2>Explore Our Core Features</h2>
+    <div class="features-grid">
+      <a href="/chatbot" class="feature-card">
+        <div class="feature-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"></path></svg>
+        </div>
+        <h3>Doubt-Solving Chatbot</h3>
+        <p>Get instant, 24/7 answers to your academic questions and clear your doubts on the spot.</p>
+      </a>
+      <a href="/summary" class="feature-card">
+        <div class="feature-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zM6 20V4h7v5h5v11H6z"></path></svg>
+        </div>
+        <h3>Content Summarization</h3>
+        <p>Transform long texts and documents into concise, easy-to-understand summaries in seconds.</p>
+      </a>
+      <a href="/profile" class="feature-card">
+        <div class="feature-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M3.5 18.49l6-6.01 4 4L22 6.92l-1.41-1.41-7.09 7.09-4-4L2 16.99z"></path></svg>
+        </div>
+        <h3>Student Progress</h3>
+        <p>Track your learning journey with automated performance analysis and personalized feedback.</p>
+      </a>
+      <a href="/mcq" class="feature-card">
+        <div class="feature-icon">
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"></path></svg>
+        </div>
+        <h3>MCQ Generator</h3>
+        <p>Create practice quizzes from any content to test your knowledge and prepare for exams.</p>
+      </a>
+    </div>
   </div>
 
   <div id="about" class="about-section">
@@ -31,48 +71,75 @@
     <p>We are a team dedicated to transforming education by moving beyond the traditional one-size-fits-all approach. Our mission is to provide students with personalized learning experiences that adapt to their unique attention spans, learning speeds, and comprehension levels. By integrating real-time academic assistance, smart content summarization, and automated performance tracking, we aim to make learning more engaging, effective, and accessible for every student.</p>
   </div>
 
-  <div class="features-section">
-    <h2>Our Features</h2>
-    <div class="features-row">
-      <a href="/chatbot" role="button"><span class="feature-ico"></span>Doubt-Solving Chatbot</a>
-      <a href="/summary" role="button"><span class="feature-ico"></span>Content Summarization</a>
-      <a href="/profile" role="button"><span class="feature-ico"></span>Student Progress</a>
-      <a href="/mcq" role="button"><span class="feature-ico"></span>MCQ Generator</a>
-    </div>
+<div id="authModal">
+  <div id="signInForm">
+    <span class="close-btn" onclick="closeAuthModal()">×</span>
+    <h2>Sign In</h2>
+    <form>
+      <input type="email" placeholder="Email" required />
+      <input type="password" placeholder="Password" required />
+      <button type="submit">Sign In</button>
+    </form>
+    <p>Don't have an account? <a href="#" onclick="toggleForms()">Sign Up</a></p>
   </div>
 
-  <div id="authModal" class="modal">
-    <div class="modal-content">
-      <span class="close" onclick="closeModal()">&times;</span>
-      
-      <div id="signInForm">
-        <h2>Sign In</h2>
-        <form>
-          <input type="email" placeholder="Email" required />
-          <input type="password" placeholder="Password" required />
-          <button type="submit">Sign In</button>
-        </form>
-        <p>Don't have an account? <a onclick="toggleForms()">Sign Up</a></p>
-      </div>
-
-      <div id="signUpForm" style="display:none;">
-        <h2>Sign Up</h2>
-        <form>
-          <input type="text" placeholder="Full Name" required />
-          <input type="email" placeholder="Email" required />
-          <input type="password" placeholder="Password" required />
-          <input type="password" placeholder="Confirm Password" required />
-          <button type="submit">Sign Up</button>
-        </form>
-        <p>Already have an account? <a onclick="toggleForms()">Sign In</a></p>
-      </div>
-    </div>
+  <div id="signUpForm" style="display:none;">
+    <span class="close-btn" onclick="closeAuthModal()">×</span>
+    <h2>Sign Up</h2>
+    <form>
+      <input type="text" placeholder="Full Name" required />
+      <input type="email" placeholder="Email" required />
+      <input type="password" placeholder="Password" required />
+      <input type="password" placeholder="Confirm Password" required />
+      <button type="submit">Sign Up</button>
+    </form>
+    <p>Already have an account? <a href="#" onclick="toggleForms()">Sign In</a></p>
   </div>
+</div>
+
 
   <footer>
-    <p style="text-align:center; padding:1em; font-size:0.9em; color:#555;">&copy; 2024 Educademy. All rights reserved.</p>
+    <div class="footer-grid">
+      <div>
+        <h4>Educademy</h4>
+        <p style="color:var(--muted); margin:8px 0 0">Empowering learners worldwide with interactive quizzes and comprehensive tracking.</p>
+      </div>
+      <div>
+        <h4>Quick Links</h4>
+        <a href="/">Dashboard</a><a href="#">Courses</a><a href="/mcq">Quizzes</a><a href="/profile">Progress</a>
+      </div>
+      <div>
+        <h4>Support</h4>
+        <a href="#">Help Center</a><a href="/contact">Contact Us</a><a href="#">Privacy Policy</a><a href="#">Terms of Service</a>
+      </div>
+      <div>
+        <h4>Connect</h4>
+        <a href="#">GitHub</a><a href="#">Twitter</a><a href="#">LinkedIn</a><a href="mailto:adarsh.kushwaha_cs23@gla.ac.in">Email</a>
+      </div>
+    </div>
+    <div class="copyright">&copy; 2025 Educademy. All rights reserved.</div>
   </footer>
 
   <script src="{{ url_for('static', filename='js/script.js') }}" defer></script>
+  <script>
+function openAuthModal() {
+  document.getElementById("authModal").classList.add("active");
+}
+function closeAuthModal() {
+  document.getElementById("authModal").classList.remove("active");
+}
+function toggleForms() {
+  const signIn = document.getElementById("signInForm");
+  const signUp = document.getElementById("signUpForm");
+  if (signIn.style.display === "none") {
+    signIn.style.display = "block";
+    signUp.style.display = "none";
+  } else {
+    signIn.style.display = "none";
+    signUp.style.display = "block";
+  }
+}
+</script>
+
 </body>
 </html>

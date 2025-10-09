@@ -1,4 +1,4 @@
-/* General Body and Navbar Styles (consistent with other pages) */
+/* General Body and Navbar Styles */
 body {
     margin: 0;
     font-family: 'Segoe UI', Arial, Helvetica, sans-serif;
@@ -8,6 +8,7 @@ body {
     flex-direction: column;
     min-height: 100vh;
 }
+
 .navbar {
     position: sticky;
     top: 0;
@@ -19,33 +20,38 @@ body {
     padding: 0.7em 3vw;
     z-index: 10;
 }
+
 .navbar .logo {
     font-weight: bold;
     font-size: 1.7em;
     color: #2d7be5;
     letter-spacing: 1px;
     user-select: none;
-    background: none;
-    border: none;
-    cursor: pointer;
 }
+
 .nav-links {
     display: flex;
     gap: 2vw;
+    align-items: center; /* Ensures vertical alignment of nav items */
 }
+
 .nav-link {
     text-decoration: none;
     color: #2d3a4a;
     font-weight: 500;
+    transition: color 0.3s, transform 0.2s;
     padding: 0.3em 0.5em;
     border-radius: 6px;
 }
+
 .nav-link:hover {
     color: #2d7be5;
     background: #eaf3ff;
+    transform: translateY(-2px);
 }
+
 .profile-btn {
-    background: #2d7be5;
+    background: #4a90e2;
     width: 42px;
     height: 42px;
     border-radius: 50%;
@@ -53,27 +59,38 @@ body {
     cursor: pointer;
     color: #fff;
     font-weight: 600;
+    margin-left: 10px;
     display: flex;
     align-items: center;
     justify-content: center;
     font-size: 1.2em;
+    transition: background 0.3s, transform 0.2s;
+    user-select: none;
 }
 
-/* Chatbot Specific Styles */
+.profile-btn:hover {
+    background: #6aa8ff;
+    transform: scale(1.1);
+}
+
+/* Welcome Section Styles */
 .welcome-section {
     text-align: center;
     padding: 3em 2em;
 }
+
 .welcome-icon {
     font-size: 3.5em;
     color: #2d7be5;
     margin-bottom: 0.2em;
 }
+
 .welcome-section h2 {
     color: #1e2a44;
     margin-top: 0;
 }
 
+/* Chat Container & Form Styles */
 .chat-container {
     max-width: 700px;
     width: 90%;
@@ -86,6 +103,7 @@ body {
     display: flex;
     flex-direction: column;
 }
+
 #chatArea {
     flex-grow: 1;
     overflow-y: auto;
@@ -94,10 +112,13 @@ body {
     border-radius: 8px;
     padding: 1em;
 }
+
 .chat-form {
     display: flex;
     gap: 10px;
+    align-items: center; /* Vertically aligns the input and buttons */
 }
+
 .chat-form input[type="text"] {
     flex-grow: 1;
     padding: 0.8em;
@@ -105,30 +126,81 @@ body {
     border-radius: 8px;
     font-size: 1em;
     background: #f6f8fa;
+    height: 26px; /* Match button height for alignment */
 }
-.chat-form button {
-    padding: 0.8em 1.2em;
-    border: none;
-    border-radius: 8px;
-    background: #2d7be5;
-    color: white;
-    font-size: 1em;
-    cursor: pointer;
-}
-.chat-form .file-label {
-    padding: 0.8em 1.2em;
-    border-radius: 8px;
-    background: #eaf3ff;
-    color: #2d7be5;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
+
 .chat-form input[type="file"] {
     display: none;
 }
 
+/* Updated button and label styles for icons */
+.chat-form button,
+.chat-form .file-label {
+    padding: 0;
+    width: 42px;
+    height: 42px;
+    border: none;
+    border-radius: 8px;
+    background: #2d7be5;
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background-color 0.2s;
+}
+
+.chat-form .file-label {
+    background: #eaf3ff;
+}
+
+.chat-form button:hover {
+    background: #1c6ad4;
+}
+
+.chat-form .file-label:hover {
+    background: #dce9fa;
+}
+
+/* SVG Icon Styles */
+.chat-form button svg {
+    stroke: #ffffff;
+}
+
+.chat-form .file-label svg {
+    stroke: #2d7be5;
+}
+
+/* Footer Styles */
 footer {
-    margin-top: 2em;
+    margin-top: 30px;
+    padding: 28px 4vw;
+    background: #fff;
+    border-top: 1px solid #eef2f6;
+}
+
+.footer-grid {
+    max-width: 1180px;
+    margin: 0 auto;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: 20px;
+}
+
+.footer-grid h4 {
+    margin-bottom: 8px
+}
+
+.footer-grid a {
+    color: #55606a;
+    text-decoration: none;
+    display: block;
+    margin: 4px 0;
+}
+
+.copyright {
+    text-align: center;
+    color: #8b94a0;
+    margin-top: 14px;
+    font-size: 0.92rem;
 }

@@ -114,3 +114,29 @@ body {
         gap: 18px;
     }
 }
+footer {
+  margin-top: 30px;
+  padding: 28px 4vw;
+  background: #fff;
+  border-top: 1px solid #eef2f6;
+}
+.footer-grid {
+  max-width: 1180px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 20px;
+}
+.footer-grid h4 { margin-bottom: 8px }
+.footer-grid a {
+  color: #55606a;
+  text-decoration: none;
+  display: block;
+  margin: 4px 0;
+}
+.copyright {
+  text-align: center;
+  color: #8b94a0;
+  margin-top: 14px;
+  font-size: 0.92rem;
+}

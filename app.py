@@ -49,6 +49,7 @@ def contact_page():
 def profile_page():
     return render_template('profile.html')
 
+
 @app.route('/analytics')
 def analytics_page():
     # Note: You have not provided the 'analytics.html' file.

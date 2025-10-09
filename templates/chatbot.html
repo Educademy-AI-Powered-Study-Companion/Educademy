@@ -8,14 +8,14 @@
 </head>
 <body>
   <div class="navbar">
-    <button class="logo" onclick="location.href='/'">Educademy</button>
-    <nav class="nav-links">
-      <a href="#" class="nav-link">Sign In</a>
-      <a href="#about" class="nav-link">About</a>
-      <a href="#" class="nav-link">Contact</a>
-      <button class="profile-btn" onclick="location.href='#'"></button>
-    </nav>
-  </div>
+        <button class="logo" onclick="location.href='/'" style="background:none;border:none;cursor:pointer;color:#2d7be5;font-size:1.7em;font-weight:bold;letter-spacing:1px;user-select:none;">Educademy</button>
+        <nav class="nav-links">
+            <a href="/" class="nav-link">Home</a>
+            <a href="/#about" class="nav-link">About</a>
+            <a href="/contact" class="nav-link">Contact</a>
+            <button class="profile-btn" onclick="location.href='/profile'">👤</button>
+        </nav>
+    </div>
 
   <div class="welcome-section">
     <div class="welcome-icon"></div>
@@ -30,18 +30,34 @@
     <div class="chat-animation"></div>
     <div id="chatArea"></div>
     <form class="chat-form" id="chatForm">
-      <label for="fileInput" class="file-label"></label>
+      <label for="fileInput" class="file-label"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48"></path></svg></label>
       <input type="file" id="fileInput" accept=".pdf,.txt,.docx" />
       <input type="text" id="userInput" placeholder="Type your message here..." required />
-      <button type="submit"></button>
+      <button type="submit"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg></button>
     </form>
     <small style="text-align:center; color:#777;">Press Enter to send, Shift + Enter for new line</small>
   </div>
 
   <footer>
-    <p style="text-align:center; padding:1em; font-size:0.9em; color:#555;">
-      &copy; 2024 Educademy. All rights reserved.
-    </p>
+    <div class="footer-grid">
+      <div>
+        <h4>Educademy</h4>
+        <p style="color:var(--muted); margin:8px 0 0">Empowering learners worldwide with interactive quizzes and comprehensive tracking.</p>
+      </div>
+      <div>
+        <h4>Quick Links</h4>
+        <a href="/">Dashboard</a><a href="#">Courses</a><a href="/mcq">Quizzes</a><a href="/profile">Progress</a>
+      </div>
+      <div>
+        <h4>Support</h4>
+        <a href="#">Help Center</a><a href="/contact">Contact Us</a><a href="#">Privacy Policy</a><a href="#">Terms of Service</a>
+      </div>
+      <div>
+        <h4>Connect</h4>
+        <a href="#">GitHub</a><a href="#">Twitter</a><a href="#">LinkedIn</a><a href="mailto:adarsh.kushwaha_cs23@gla.ac.in">Email</a>
+      </div>
+    </div>
+    <div class="copyright">&copy; 2025 Educademy. All rights reserved.</div>
   </footer>
   <script src="{{ url_for('static', filename='js/script.js') }}" defer></script>
 </body>

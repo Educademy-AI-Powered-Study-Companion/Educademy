@@ -12,19 +12,19 @@
 </head>
 <body>
 
-  <header class="navbar" role="banner">
-    <button class="logo" onclick="location.href='/'" aria-label="Educademy home">Educademy</button>
-    <nav class="nav-links" role="navigation" aria-label="Main nav">
-      <a class="nav-link" href="/">Dashboard</a>
-      <a class="nav-link" href="#">Courses</a>
-      <a class="nav-link" href="/contact">Contact</a>
-      <a class="nav-link" href="#">Help</a>
-    </nav>
-  </header>
+  <div class="navbar">
+        <button class="logo" onclick="location.href='/'" style="background:none;border:none;cursor:pointer;color:#2d7be5;font-size:1.7em;font-weight:bold;letter-spacing:1px;user-select:none;">Educademy</button>
+        <nav class="nav-links">
+            <a href="/" class="nav-link">Home</a>
+            <a href="/#about" class="nav-link">About</a>
+            <a href="/contact" class="nav-link">Contact</a>
+            <button class="profile-btn" onclick="location.href='/profile'">👤</button>
+        </nav>
+  </div>
 
   <section class="welcome-section" aria-labelledby="welcome-heading">
     <div class="profile-wrapper" style="position:relative;">
-      <img id="avatarImg" class="avatar" src="https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=600&auto=format&fit=crop&q=60" alt="Profile picture">
+      <img id="avatarImg" class="avatar" src="https://images.unsplash.com/photo-1583440194369-ac78b451536a?w=600&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxzZWFyY2h8NTR8fGhhY2tlcnxlbnwwfHwwfHx8MA%3D%3D" alt="Profile picture">
       <label class="avatar-edit" title="Change avatar" aria-label="Change avatar">
         <input id="avatarInput" type="file" accept="image/*" style="display:none">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" style="display:block"><path d="M16 3h5v5" stroke="#222" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></path><path d="M21 3L13 11" stroke="#222" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></path><path d="M3 21v-4a2 2 0 0 1 2-2h4" stroke="#222" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"></path></svg>
@@ -33,7 +33,7 @@
       <div class="status-dot" aria-hidden="true"></div>
     </div>
 
-    <h1 id="welcome-heading" class="welcome-title">Welcome back, Alex!</h1>
+    <h1 id="welcome-heading" class="welcome-title">Welcome back, admin!</h1>
     <p class="welcome-sub">Ready to continue your learning journey?</p>
   </section>
 
@@ -102,7 +102,7 @@
       </div>
       <div>
         <h4>Connect</h4>
-        <a href="#">GitHub</a><a href="#">Twitter</a><a href="#">LinkedIn</a><a href="#">Email</a>
+        <a href="#">GitHub</a><a href="#">Twitter</a><a href="#">LinkedIn</a><a href="mailto:adarsh.kushwaha_cs23@gla.ac.in">Email</a>
       </div>
     </div>
     <div class="copyright">&copy; 2025 Educademy. All rights reserved.</div>
