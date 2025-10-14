@@ -1,7 +1,4 @@
-# modules/utils.py
-"""
-Utility functions for file processing and text extraction.
-"""
+
 import os
 import logging
 import docx

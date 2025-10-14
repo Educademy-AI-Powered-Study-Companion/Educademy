@@ -1,4 +1,4 @@
-/* General Body and Navbar Styles */
+
 body {
     margin: 0;
     font-family: 'Segoe UI', Arial, Helvetica, sans-serif;
@@ -32,7 +32,7 @@ body {
 .nav-links {
     display: flex;
     gap: 2vw;
-    align-items: center; /* Ensures vertical alignment of nav items */
+    align-items: center; 
 }
 
 .nav-link {
@@ -73,7 +73,6 @@ body {
     transform: scale(1.1);
 }
 
-/* Welcome Section Styles */
 .welcome-section {
     text-align: center;
     padding: 3em 2em;
@@ -90,14 +89,13 @@ body {
     margin-top: 0;
 }
 
-/* Chat Container & Form Styles */
 .chat-container {
     max-width: 700px;
     width: 90%;
     margin: 0 auto;
     background: #fff;
     border-radius: 12px;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 20px rgba(0,0,0,0.2);
     padding: 1.5em;
     flex-grow: 1;
     display: flex;
@@ -116,7 +114,7 @@ body {
 .chat-form {
     display: flex;
     gap: 10px;
-    align-items: center; /* Vertically aligns the input and buttons */
+    align-items: center; 
 }
 
 .chat-form input[type="text"] {
@@ -126,14 +124,12 @@ body {
     border-radius: 8px;
     font-size: 1em;
     background: #f6f8fa;
-    height: 26px; /* Match button height for alignment */
+    height: 26px; 
 }
 
 .chat-form input[type="file"] {
     display: none;
 }
-
-/* Updated button and label styles for icons */
 .chat-form button,
 .chat-form .file-label {
     padding: 0;
@@ -162,7 +158,6 @@ body {
     background: #dce9fa;
 }
 
-/* SVG Icon Styles */
 .chat-form button svg {
     stroke: #ffffff;
 }
@@ -171,7 +166,6 @@ body {
     stroke: #2d7be5;
 }
 
-/* Footer Styles */
 footer {
     margin-top: 30px;
     padding: 28px 4vw;

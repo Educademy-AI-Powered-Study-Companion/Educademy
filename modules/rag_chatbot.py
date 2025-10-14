@@ -1,8 +1,4 @@
-# modules/rag_chatbot.py
-"""
-This module implements the full RAG pipeline using LangChain, a local Ollama LLM,
-and a FAISS vector store.
-"""
+
 import logging
 import torch
 from langchain_community.llms import Ollama
@@ -11,15 +7,13 @@ from langchain_community.vectorstores import FAISS
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.chains import RetrievalQA
 from langchain_core.prompts import PromptTemplate
-from . import config # Use relative import
+from . import config
 
 class RAGChatbot:
     """A chatbot that uses Ollama and a local RAG pipeline."""
     def __init__(self):
         logging.info("Initializing RAG Chatbot with Ollama.")
-        # Use the model ID from the config file
         self.llm = Ollama(model=config.CHATBOT_MODEL_ID)
-        # Use the model ID from the config file
         self.embedding_model = HuggingFaceEmbeddings(
             model_name=config.EMBEDDING_MODEL_ID,
             model_kwargs={'device': 'cuda' if torch.cuda.is_available() else 'cpu'}
@@ -38,7 +32,6 @@ class RAGChatbot:
             return
         try:
             vector_store = FAISS.from_texts(texts=chunks, embedding=self.embedding_model)
-            # Use the parameter from the config file
             self.retriever = vector_store.as_retriever(search_kwargs={"k": config.TOP_K_RETRIEVED_CHUNKS})
             logging.info("FAISS vector store and retriever created successfully.")
         except Exception as e:
