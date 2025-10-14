@@ -1,21 +1,13 @@
-# modules/mcq_generator.py
-"""
-This module uses the powerful Ollama LLM to generate meaningful,
-context-aware Multiple Choice Questions from the full text of a document.
-"""
 import logging
 import json
 from typing import List, Dict, Any
 from langchain_community.llms import Ollama
 from langchain_core.prompts import PromptTemplate
 from langchain_core.output_parsers import JsonOutputParser
-from . import config # Use relative import
+from . import config
 
 def generate_meaningful_mcqs(full_text: str, num_questions: int) -> List[Dict[str, Any]]:
-    """
-    Instructs the Ollama LLM to read a document and generate a list of
-    meaningful multiple-choice questions in a structured JSON format.
-    """
+
     logging.info(f"Generating {num_questions} meaningful MCQs with Ollama.")
     if not full_text.strip():
         return []
@@ -45,12 +37,10 @@ def generate_meaningful_mcqs(full_text: str, num_questions: int) -> List[Dict[st
             partial_variables={"format_instructions": parser.get_format_instructions()}
         )
         
-        # Use the model ID from the config file
         llm = Ollama(model=config.PROCESSING_MODEL_ID)
         chain = PROMPT | llm | parser
         
         result = chain.invoke({"document": full_text, "num_questions": num_questions})
-        
         mcq_list = result.get("questions", [])
         logging.info(f"Successfully generated {len(mcq_list)} MCQs.")
         return mcq_list

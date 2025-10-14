@@ -1,23 +1,17 @@
-# modules/evaluator.py
-"""
-Evaluates a student's answer against a reference summary using embeddings.
-"""
+
 import logging
 from sentence_transformers import SentenceTransformer, util
 from typing import Tuple, Optional
-from . import config # Use relative import
+from . import config 
 
-# --- Load embedding model ---
 embedding_model: Optional[SentenceTransformer] = None
 try:
-    # Use the model ID from the config file
     embedding_model = SentenceTransformer(config.EMBEDDING_MODEL_ID)
     logging.info(f"Embedding model '{config.EMBEDDING_MODEL_ID}' loaded successfully.")
 except Exception as e:
     logging.critical(f"Failed to load embedding model. Error: {e}", exc_info=True)
 
 def evaluate_student_answer(student_answer: str, reference_summary: str) -> Tuple[float, str]:
-    """Grades a student's answer using semantic similarity."""
     if not embedding_model:
         return 0.0, "Error: The grading model is currently unavailable."
 
