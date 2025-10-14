@@ -1,11 +1,9 @@
-// static/js/script.js
 
 document.addEventListener('DOMContentLoaded', function() {
 
-    // --- Logic for index.html (Homepage & Modals) ---
     const authModal = document.getElementById('authModal');
     if (authModal) {
-        // Preloader
+
         const preloader = document.getElementById("preloader");
         if(preloader) {
             window.addEventListener("load", () => {
@@ -13,7 +11,6 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         }
 
-        // Modal functions
         window.openModal = function() { authModal.style.display = "flex"; }
         window.closeModal = function() { authModal.style.display = "none"; }
         window.toggleForms = function() {
@@ -34,7 +31,7 @@ document.addEventListener('DOMContentLoaded', function() {
         };
     }
 
-    // --- Logic for summary.html ---
+
     const summaryForm = document.getElementById('summaryForm');
     if (summaryForm) {
         summaryForm.addEventListener("submit", async (e) => {
@@ -52,8 +49,6 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
-
-    // --- Logic for chatbot.html ---
     const chatForm = document.getElementById('chatForm');
     if (chatForm) {
         const userInput = document.getElementById('userInput');
@@ -101,7 +96,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // --- Logic for mcq.html ---
     const mcqForm = document.getElementById("mcqForm");
     if (mcqForm) {
         const resultDiv = document.getElementById("mcqResult");
@@ -152,7 +146,7 @@ document.addEventListener('DOMContentLoaded', function() {
             allQuestions.forEach(questionBlock => {
                 const correctAnswer = questionBlock.dataset.answer;
                 const selectedRadio = questionBlock.querySelector('input[type="radio"]:checked');
-                questionBlock.style.border = '1px solid #ddd'; // Reset style
+                questionBlock.style.border = '1px solid #ddd'; 
                 if (selectedRadio) {
                     if (selectedRadio.value === correctAnswer) {
                         score++;
@@ -169,10 +163,10 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    // --- Logic for profile.html ---
+
     const avatarImg = document.getElementById('avatarImg');
     if (avatarImg) {
-        // 1) Avatar upload behavior
+
         const avatarInput = document.getElementById('avatarInput');
         avatarInput.addEventListener('change', (e) => {
             const f = e.target.files && e.target.files[0];
@@ -188,7 +182,6 @@ document.addEventListener('DOMContentLoaded', function() {
         
         document.querySelector('.avatar-edit').addEventListener('click', () => avatarInput.click());
 
-        // 2) Doughnut chart (progress)
         const ctx = document.getElementById('progressChart').getContext('2d');
         new Chart(ctx, {
             type: 'doughnut',

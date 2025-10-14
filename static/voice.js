@@ -1,6 +1,6 @@
 function recordVoice() {
   const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
-  recognition.lang = 'en-IN';  // Use 'en-IN' for English
+  recognition.lang = 'en-IN';  
   recognition.start();
 
   recognition.onresult = function(event) {
