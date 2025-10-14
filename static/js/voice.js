@@ -1,5 +1,3 @@
-// static/js/voice.js
-
 function recordVoice(inputElement) {
   const recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
   if (!recognition) {
@@ -13,11 +11,10 @@ function recordVoice(inputElement) {
 
   recognition.start();
   
-  // Provide feedback to the user that recording has started
   const originalPlaceholder = inputElement.placeholder;
   const voiceBtn = document.getElementById('voiceBtn');
   inputElement.placeholder = "Listening...";
-  if (voiceBtn) voiceBtn.style.color = '#e74c3c'; // Change color to indicate recording
+  if (voiceBtn) voiceBtn.style.color = '#e74c3c';
 
   recognition.onresult = (event) => {
     const speechResult = event.results[0][0].transcript;
@@ -27,13 +24,13 @@ function recordVoice(inputElement) {
   recognition.onspeechend = () => {
     recognition.stop();
     inputElement.placeholder = originalPlaceholder;
-    if (voiceBtn) voiceBtn.style.color = ''; // Reset color
+    if (voiceBtn) voiceBtn.style.color = '';
   };
 
   recognition.onerror = (event) => {
     console.error("Speech recognition error:", event.error);
     inputElement.placeholder = originalPlaceholder;
-    if (voiceBtn) voiceBtn.style.color = ''; // Reset color
+    if (voiceBtn) voiceBtn.style.color = '';
     if (event.error === 'no-speech') {
         alert("No speech was detected. Please try again.");
     }

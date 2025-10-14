@@ -1,4 +1,3 @@
-
 document.addEventListener('DOMContentLoaded', function() {
 
     const authModal = document.getElementById('authModal');

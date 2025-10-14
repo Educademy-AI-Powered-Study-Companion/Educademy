@@ -1,1 +1,0 @@
-# AI logic for summarization and MCQs

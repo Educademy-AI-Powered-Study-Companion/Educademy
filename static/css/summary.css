@@ -1,4 +1,3 @@
-/* General Body and Navbar Styles */
 body {
     margin: 0;
     font-family: 'Segoe UI', Arial, Helvetica, sans-serif;
@@ -70,7 +69,6 @@ body {
     transform: scale(1.1);
 }
 
-/* --- NEW --- Welcome Section Styles */
 .welcome-section {
     text-align: center;
     padding: 3em 2em;
@@ -83,7 +81,7 @@ body {
 }
 
 .welcome-icon::before {
-    content: '📝'; /* Adds the summary icon */
+    content: '📝';
 }
 
 .welcome-section h2 {
@@ -91,7 +89,6 @@ body {
     margin-top: 0;
 }
 
-/* Container and Form Styles */
 .container {
     max-width: 800px;
     margin: 2em auto;
@@ -169,7 +166,6 @@ button[type="submit"]:hover {
     color: #2d7be5;
 }
 
-/* Footer Styles */
 footer {
     margin-top: 30px;
     padding: 28px 4vw;

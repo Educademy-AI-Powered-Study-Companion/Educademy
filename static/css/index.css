@@ -1,4 +1,3 @@
-/* ---------------- PRELOADER ---------------- */
 #preloader {
   position: fixed;
   top: 0;
@@ -58,7 +57,6 @@
   }
 }
 
-/* ---------------- GENERAL ---------------- */
 body {
   margin: 0;
   font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, Arial, sans-serif;
@@ -73,7 +71,6 @@ h2 {
   margin-bottom: 1em;
 }
 
-/* ---------------- NAVBAR ---------------- */
 .navbar {
     position: sticky;
     top: 0;
@@ -133,7 +130,6 @@ h2 {
     transform: scale(1.1);
 }
 
-/* ---------------- MAIN CONTENT (HERO) - REDESIGNED ---------------- */
 .main-content {
   display: flex;
   align-items: center;
@@ -218,7 +214,6 @@ h2 {
 }
 
 
-/* ---------------- FEATURES SECTION - REDESIGNED ---------------- */
 .features-section {
   padding: 4em 5vw;
   text-align: center;
@@ -280,8 +275,6 @@ h2 {
   margin: 0;
 }
 
-
-/* ---------------- ABOUT SECTION - REDESIGNED ---------------- */
 .about-section {
   max-width: 800px;
   margin: 2em auto 4em auto;
@@ -299,8 +292,6 @@ h2 {
   color: #5a6878;
 }
 
-
-/* ---------------- MODAL (Original styles are good) ---------------- */
 .modal {
   display: none;
   position: fixed;
@@ -425,9 +416,9 @@ footer {
   margin-top: 14px;
   font-size: 0.92rem;
 }
-/* ---------------- AUTH MODAL (Sign In / Sign Up) ---------------- */
+
 #authModal {
-  display: none; /* Hidden by default */
+  display: none;
   position: fixed;
   inset: 0;
   z-index: 2000;
@@ -477,7 +468,6 @@ footer {
   font-size: 1.8rem;
 }
 
-/* Inputs */
 #signInForm input, #signUpForm input {
   width: 100%;
   padding: 0.8rem 1rem;
@@ -494,7 +484,6 @@ footer {
   outline: none;
 }
 
-/* Buttons */
 #signInForm button, #signUpForm button {
   width: 100%;
   background: #2d7be5;
@@ -511,7 +500,6 @@ footer {
   background: #5595ff;
 }
 
-/* Text & Links */
 #signInForm p, #signUpForm p {
   margin-top: 1rem;
   color: #6b7280;
@@ -528,7 +516,6 @@ footer {
   color: #1a5fd1;
 }
 
-/* Close Button */
 #authModal .close-btn {
   position: absolute;
   top: 12px;
@@ -543,7 +530,6 @@ footer {
   color: #2d3a4a;
 }
 
-/* Responsive */
 @media (max-width: 480px) {
   #signInForm, #signUpForm {
     max-width: 90%;
