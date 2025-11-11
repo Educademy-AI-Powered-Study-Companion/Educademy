@@ -33,18 +33,50 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const summaryForm = document.getElementById('summaryForm');
     if (summaryForm) {
+        let isProcessing = false;
         summaryForm.addEventListener("submit", async (e) => {
             e.preventDefault();
+            if (isProcessing) return;
+            isProcessing = true;
+            
             let formData = new FormData(e.target);
             let summaryResult = document.getElementById("summaryResult");
+            const submitBtn = e.target.querySelector('button[type="submit"]');
+            const originalBtnText = submitBtn ? submitBtn.textContent : '';
+            
             summaryResult.innerHTML = "<p><em>Summarizing...</em></p>";
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.textContent = "Processing...";
+            }
+            
             try {
-                let res = await fetch("/summarize", { method: "POST", body: formData });
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 120000);
+                
+                let res = await fetch("/summarize", { 
+                    method: "POST", 
+                    body: formData,
+                    signal: controller.signal
+                });
+                clearTimeout(timeoutId);
+                
+                if (!res.ok) throw new Error(`Server error: ${res.status}`);
                 let data = await res.json();
                 if(data.error) throw new Error(data.error);
                 summaryResult.innerHTML = "<h3>Summary:</h3><div>" + data.summary.replace(/\n/g, '<br>') + "</div>";
             } catch (error) {
-                summaryResult.innerHTML = `<p style="color:red;">⚠️ ${error.message}</p>`;
+                if (error.name === 'AbortError') {
+                    summaryResult.innerHTML = `<p style="color:red;">⚠️ Request timed out. Please try again.</p>`;
+                } else {
+                    summaryResult.innerHTML = `<p style="color:red;">⚠️ ${error.message}</p>`;
+                }
+            } finally {
+                isProcessing = false;
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = originalBtnText;
+                }
             }
         });
     }
@@ -53,12 +85,19 @@ document.addEventListener('DOMContentLoaded', function() {
         const userInput = document.getElementById('userInput');
         const fileInput = document.getElementById('fileInput');
         const chatArea = document.getElementById('chatArea');
+        let isProcessing = false;
 
         chatForm.addEventListener('submit', async function(e) {
             e.preventDefault();
+            if (isProcessing) return;
+            
             const question = userInput.value.trim();
             const file = fileInput.files[0];
             if (!question && !file) return;
+
+            isProcessing = true;
+            const submitBtn = chatForm.querySelector('button[type="submit"]');
+            if (submitBtn) submitBtn.disabled = true;
 
             const userMsgHtml = `<b>You:</b> ${question || "(Uploaded: " + file.name + ")"}`;
             appendMessage(userMsgHtml, 'user');
@@ -71,18 +110,30 @@ document.addEventListener('DOMContentLoaded', function() {
             if (file) formData.append("file", file);
 
             try {
-                const res = await fetch('/ask-ai', { method: 'POST', body: formData });
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 180000);
+                
+                const res = await fetch('/ask-ai', { 
+                    method: 'POST', 
+                    body: formData,
+                    signal: controller.signal
+                });
+                clearTimeout(timeoutId);
+                
+                if (!res.ok) throw new Error(`Server error: ${res.status}`);
                 const data = await res.json();
                 loadingMsg.remove();
                 const aiMsgHtml = `<b>AI:</b> ${data.answer || 'Sorry, I could not find an answer.'}`;
                 appendMessage(aiMsgHtml, 'ai');
             } catch (err) {
-                loadingMsg.innerHTML = '<b>AI:</b> Error getting response.';
+                loadingMsg.innerHTML = `<b>AI:</b> ${err.name === 'AbortError' ? 'Request timed out. Please try again.' : 'Error getting response.'}`;
+            } finally {
+                isProcessing = false;
+                if (submitBtn) submitBtn.disabled = false;
+                userInput.value = '';
+                fileInput.value = '';
+                chatArea.scrollTop = chatArea.scrollHeight;
             }
-
-            userInput.value = '';
-            fileInput.value = '';
-            chatArea.scrollTop = chatArea.scrollHeight;
         });
 
         function appendMessage(innerHTML, type) {
@@ -100,16 +151,35 @@ document.addEventListener('DOMContentLoaded', function() {
         const resultDiv = document.getElementById("mcqResult");
         const scoreDiv = document.getElementById("quizScore");
         const loading = document.getElementById("loading");
+        let isProcessing = false;
 
         mcqForm.addEventListener("submit", async (e) => {
             e.preventDefault();
+            if (isProcessing) return;
+            isProcessing = true;
+            
             resultDiv.innerHTML = "";
             scoreDiv.innerHTML = "";
             loading.style.display = "block";
+            const submitBtn = mcqForm.querySelector('button[type="submit"]');
+            const originalBtnText = submitBtn ? submitBtn.textContent : '';
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.textContent = "Generating...";
+            }
 
             try {
                 const formData = new FormData(mcqForm);
-                const res = await fetch("/summarize", { method: "POST", body: formData });
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 120000);
+                
+                const res = await fetch("/summarize", { 
+                    method: "POST", 
+                    body: formData,
+                    signal: controller.signal
+                });
+                clearTimeout(timeoutId);
+                
                 if (!res.ok) throw new Error("Server error: Failed to generate MCQs");
                 const data = await res.json();
                 loading.style.display = "none";
@@ -121,11 +191,16 @@ document.addEventListener('DOMContentLoaded', function() {
 
                 let html = "<h3>Generated MCQs:</h3>";
                 data.mcqs.forEach((mcq, idx) => {
+                    const escapedAnswer = mcq.answer.replace(/"/g, '&quot;');
+                    const escapedQuestion = mcq.question.replace(/"/g, '&quot;');
                     html += `
-                        <div class="mcq-block" data-answer="${mcq.answer}">
-                            <p><b>Q${idx + 1}:</b> ${mcq.question}</p>
+                        <div class="mcq-block" data-answer="${escapedAnswer}">
+                            <p><b>Q${idx + 1}:</b> ${escapedQuestion}</p>
                             <fieldset>
-                                ${mcq.options.map(opt => `<label><input type="radio" name="q${idx}" value="${opt}"> ${opt}</label><br>`).join('')}
+                                ${mcq.options.map(opt => {
+                                    const escapedOpt = opt.replace(/"/g, '&quot;');
+                                    return `<label><input type="radio" name="q${idx}" value="${escapedOpt}"> ${opt}</label><br>`;
+                                }).join('')}
                             </fieldset>
                         </div>`;
                 });
@@ -135,7 +210,14 @@ document.addEventListener('DOMContentLoaded', function() {
 
             } catch (error) {
                 loading.style.display = "none";
-                resultDiv.innerHTML = `<p style="color:red;">⚠️ ${error.message}</p>`;
+                const errorMsg = error.name === 'AbortError' ? 'Request timed out. Please try again.' : error.message;
+                resultDiv.innerHTML = `<p style="color:red;">⚠️ ${errorMsg}</p>`;
+            } finally {
+                isProcessing = false;
+                if (submitBtn) {
+                    submitBtn.disabled = false;
+                    submitBtn.textContent = originalBtnText;
+                }
             }
         });
 

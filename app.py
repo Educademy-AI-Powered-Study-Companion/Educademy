@@ -1,7 +1,10 @@
 from flask import Flask, render_template, request, jsonify
+from flask_compress import Compress
 from pymongo import MongoClient
+from pymongo.errors import ConnectionFailure, ServerSelectionTimeoutError
 from datetime import datetime
 import os
+import logging
 from modules import content_processor
 from modules import mcq_generator
 from modules import evaluator
@@ -10,15 +13,34 @@ from modules import rag_chatbot
 from modules import config 
 
 app = Flask(__name__)
+Compress(app)
 
 app.config['UPLOAD_FOLDER'] = config.UPLOAD_DIRECTORY
+app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024
+app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 31536000
+
+logging.basicConfig(level=logging.INFO)
 
 bot = rag_chatbot.RAGChatbot()
 
-
-client = MongoClient("mongodb://localhost:27017/")
-db = client["EduMentorDB"]
-students_collection = db["students"]
+try:
+    client = MongoClient(
+        "mongodb://localhost:27017/",
+        serverSelectionTimeoutMS=5000,
+        connectTimeoutMS=5000,
+        maxPoolSize=10,
+        minPoolSize=1
+    )
+    client.admin.command('ping')
+    db = client["EduMentorDB"]
+    students_collection = db["students"]
+    students_collection.create_index([("student", 1), ("timestamp", -1)])
+    logging.info("MongoDB connection established successfully.")
+except Exception as e:
+    logging.error(f"MongoDB connection failed: {e}")
+    client = None
+    db = None
+    students_collection = None
 
 
 @app.route('/')
@@ -27,15 +49,15 @@ def home():
 
 @app.route('/summary')
 def summary_page():
-    return render_template('summary.html')
+    return render_template('Summarizer.html')
 
 @app.route('/mcq')
 def mcq_page():
-    return render_template('mcq.html')
+    return render_template('MCQGenerater.html')
     
 @app.route('/chatbot')
 def chatbot_page():
-    return render_template('chatbot.html')
+    return render_template('Chatbot.html')
 
 @app.route('/contact')
 def contact_page():
@@ -98,12 +120,15 @@ def grade():
     reference = request.json.get("reference", "")
 
     if not student_answer.strip():
-        return jsonify({"score": 0, "feedback": "⚠️ Please write an answer first."})
+        return jsonify({"score": 0, "feedback": "Warning: Please write an answer first."})
     score, feedback = evaluator.evaluate_student_answer(student_answer, reference)
     return jsonify({"score": score, "feedback": feedback})
 
 @app.route('/submit_mcqs', methods=['POST'])
 def submit_mcqs():
+    if students_collection is None:
+        return jsonify({"error": "Database connection unavailable."}), 503
+    
     data = request.json
     student_name = data.get("student", "Anonymous")
     score = data.get("score", 0)
@@ -121,15 +146,28 @@ def submit_mcqs():
         "mcqs": mcqs,
         "timestamp": datetime.utcnow()
     }
-    students_collection.insert_one(record)
-    return jsonify({"message": "Result saved successfully!", "data": record})
+    try:
+        students_collection.insert_one(record)
+        return jsonify({"message": "Result saved successfully!", "data": record})
+    except Exception as e:
+        logging.error(f"Error saving MCQ results: {e}")
+        return jsonify({"error": "Failed to save results."}), 500
 
 @app.route('/get_analytics/<student>', methods=['GET'])
 def get_analytics(student):
-
-    records = list(students_collection.find({"student": str(student)}, {"_id": 0}))
-    return jsonify(records)
+    if students_collection is None:
+        return jsonify({"error": "Database connection unavailable."}), 503
+    
+    try:
+        records = list(students_collection.find(
+            {"student": str(student)}, 
+            {"_id": 0}
+        ).sort("timestamp", -1).limit(100))
+        return jsonify(records)
+    except Exception as e:
+        logging.error(f"Error fetching analytics: {e}")
+        return jsonify({"error": "Failed to fetch analytics."}), 500
 
 if __name__ == '__main__':
     os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
-    app.run(debug=True)
+    app.run(debug=True, threaded=True, use_reloader=False)
