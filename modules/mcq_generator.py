@@ -1,19 +1,4 @@
-"""
-Meaningful extractive MCQ generator.
 
-Algorithm (pure-Python, no heavy deps required):
-1. Split document into sentences and score them by word-frequency importance.
-2. Pick top-N sentences as MCQ sources.
-3. For each chosen sentence:
-   - Extract candidate answer phrases (prefer multi-word tokens, proper nouns, longest content words).
-   - Choose the best candidate and remove it from the sentence to create a cloze question.
-   - Build distractors from other high-frequency content terms in the document (excluding the answer).
-   - Ensure 4 options (3 distractors + 1 answer), shuffle and return.
-4. If no good candidate exists for a sentence, fall back to a "Which term is mentioned..." style question.
-
-This module still supports the LLM path if langchain+Ollama are available (keeps backward compatibility),
-but prioritizes the extractive generator which creates meaningful MCQs from the text itself.
-"""
 import re, random, logging
 from typing import List, Dict, Any
 
