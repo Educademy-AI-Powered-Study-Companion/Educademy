@@ -23,7 +23,7 @@ students_collection = db["students"]
 
 @app.route('/')
 def home():
-    return render_template('index.html')
+    return render_template('StudentHome.html')
 
 @app.route('/summary')
 def summary_page():
@@ -39,11 +39,11 @@ def chatbot_page():
 
 @app.route('/contact')
 def contact_page():
-    return render_template('contact.html')
+    return render_template('Devcontact.html')
 
 @app.route('/profile')
 def profile_page():
-    return render_template('profile.html')
+    return render_template('Studentdashboard.html')
 
 
 @app.route('/analytics')
