@@ -3,9 +3,11 @@ flask-compress
 pymongo
 sentence-transformers
 torch
-langchain
+langchain>=0.3.1
 langchain-community
 langchain-core
+langchain-ollama
+langchain-huggingface
 faiss-cpu
 python-docx
 PyPDF2
