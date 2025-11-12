@@ -5,23 +5,112 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Educademy</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/StudentHome.css') }}">
+  <style>
+    /* --- Modal Styling --- */
+    #authModal {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.4);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s ease;
+      z-index: 1000;
+    }
+
+    #authModal.active {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .auth-box {
+      background: #fff;
+      padding: 30px 40px;
+      border-radius: 12px;
+      width: 320px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      text-align: center;
+      position: relative;
+      animation: fadeIn 0.3s ease;
+    }
+
+    .auth-box h2 {
+      color: #2563eb;
+      margin-bottom: 20px;
+    }
+
+    .auth-box label {
+      display: block;
+      text-align: left;
+      font-weight: 500;
+      margin-top: 10px;
+      color: #333;
+    }
+
+    .auth-box input, .auth-box select {
+      width: 100%;
+      padding: 8px;
+      margin-top: 5px;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      outline: none;
+      font-size: 14px;
+    }
+
+    .auth-btn {
+      width: 100%;
+      padding: 10px;
+      margin-top: 18px;
+      background: #2563eb;
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .auth-btn:hover {
+      background: #1d4ed8;
+    }
+
+    .close-btn {
+      position: absolute;
+      right: 20px;
+      top: 15px;
+      font-size: 24px;
+      cursor: pointer;
+      color: #555;
+    }
+
+    @keyframes fadeIn {
+      from { transform: scale(0.9); opacity: 0; }
+      to { transform: scale(1); opacity: 1; }
+    }
+  </style>
 </head>
+
 <body>
+  <!-- PRELOADER -->
   <div id="preloader">
     <div class="preloader-logo">Educademy</div>
     <div class="loading-dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
   </div>
 
+  <!-- NAVBAR -->
   <div class="navbar">
     <span class="logo">Educademy</span>
     <nav class="nav-links">
-      <span class="nav-link" onclick="openModal()">Sign In</span>
+      <span class="nav-link" onclick="openAuthModal()">Sign In</span>
       <a href="#about" class="nav-link">About</a>
       <a href="/contact" class="nav-link">Contact</a>
       <button class="profile-btn" onclick="location.href='/profile'">👤</button>
     </nav>
   </div>
 
+  <!-- MAIN CONTENT -->
   <div class="main-content">
     <div class="main-text">
       <h1 class="welcome-text">Welcome <br> to Educademy</h1>
@@ -32,6 +121,7 @@
     </div>
   </div>
 
+  <!-- FEATURES -->
   <div class="features-section">
     <h2>Explore Our Core Features</h2>
     <div class="features-grid">
@@ -66,38 +156,63 @@
     </div>
   </div>
 
+  <!-- ABOUT -->
   <div id="about" class="about-section">
     <h2>Who We Are</h2>
     <p>We are a team dedicated to transforming education by moving beyond the traditional one-size-fits-all approach. Our mission is to provide students with personalized learning experiences that adapt to their unique attention spans, learning speeds, and comprehension levels. By integrating real-time academic assistance, smart content summarization, and automated performance tracking, we aim to make learning more engaging, effective, and accessible for every student.</p>
   </div>
 
-<div id="authModal">
-  <div id="signInForm">
-    <span class="close-btn" onclick="closeAuthModal()">×</span>
-    <h2>Sign In</h2>
-    <form>
-      <input type="email" placeholder="Email" required />
-      <input type="password" placeholder="Password" required />
-      <button type="submit">Sign In</button>
-    </form>
-    <p>Don't have an account? <a href="#" onclick="toggleForms()">Sign Up</a></p>
+  <!-- AUTH MODAL -->
+  <div id="authModal" class="auth-modal">
+    <!-- SIGN IN FORM -->
+    <div id="signInForm" class="auth-box">
+      <span class="close-btn" onclick="closeAuthModal()">×</span>
+      <h2>Sign In</h2>
+      <form method="POST" action="/login">
+        <label>Username</label>
+        <input type="text" name="username" placeholder="Enter your username" required>
+
+        <label>Password</label>
+        <input type="password" name="password" placeholder="Enter your password" required>
+
+        <label>Role</label>
+        <select name="role" required>
+          <option value="user">Student</option>
+          <option value="admin">Admin</option>
+        </select>
+
+        <button type="submit" class="auth-btn">Sign In</button>
+      </form>
+      <p>Don't have an account? <a href="#" onclick="toggleForms()">Sign Up</a></p>
+    </div>
+
+    <!-- SIGN UP FORM -->
+    <div id="signUpForm" class="auth-box" style="display:none;">
+      <span class="close-btn" onclick="closeAuthModal()">×</span>
+      <h2>Sign Up</h2>
+      <form method="POST" action="/register">
+        <label>Full Name</label>
+        <input type="text" name="username" placeholder="Enter your name" required>
+
+        <label>Password</label>
+        <input type="password" name="password" placeholder="Enter password" required>
+
+        <label>Confirm Password</label>
+        <input type="password" name="confirm_password" placeholder="Confirm password" required>
+
+        <label>Role</label>
+        <select name="role" required>
+          <option value="user">Student</option>
+          <option value="admin">Admin</option>
+        </select>
+
+        <button type="submit" class="auth-btn">Sign Up</button>
+      </form>
+      <p>Already have an account? <a href="#" onclick="toggleForms()">Sign In</a></p>
+    </div>
   </div>
 
-  <div id="signUpForm" style="display:none;">
-    <span class="close-btn" onclick="closeAuthModal()">×</span>
-    <h2>Sign Up</h2>
-    <form>
-      <input type="text" placeholder="Full Name" required />
-      <input type="email" placeholder="Email" required />
-      <input type="password" placeholder="Password" required />
-      <input type="password" placeholder="Confirm Password" required />
-      <button type="submit">Sign Up</button>
-    </form>
-    <p>Already have an account? <a href="#" onclick="toggleForms()">Sign In</a></p>
-  </div>
-</div>
-
-
+  <!-- FOOTER -->
   <footer>
     <div class="footer-grid">
       <div>
@@ -120,26 +235,34 @@
     <div class="copyright">&copy; 2025 Educademy. All rights reserved.</div>
   </footer>
 
-  <script src="{{ url_for('static', filename='js/script.js') }}" defer></script>
+  <!-- JS -->
   <script>
-function openAuthModal() {
-  document.getElementById("authModal").classList.add("active");
-}
-function closeAuthModal() {
-  document.getElementById("authModal").classList.remove("active");
-}
-function toggleForms() {
-  const signIn = document.getElementById("signInForm");
-  const signUp = document.getElementById("signUpForm");
-  if (signIn.style.display === "none") {
-    signIn.style.display = "block";
-    signUp.style.display = "none";
-  } else {
-    signIn.style.display = "none";
-    signUp.style.display = "block";
-  }
-}
-</script>
+  // ✅ Fix: hide preloader after load
+  window.addEventListener("load", () => {
+    const preloader = document.getElementById("preloader");
+    if (preloader) {
+      preloader.style.opacity = "0";
+      setTimeout(() => preloader.style.display = "none", 400);
+    }
+  });
 
+  function openAuthModal() {
+    document.getElementById("authModal").classList.add("active");
+  }
+  function closeAuthModal() {
+    document.getElementById("authModal").classList.remove("active");
+  }
+  function toggleForms() {
+    const signIn = document.getElementById("signInForm");
+    const signUp = document.getElementById("signUpForm");
+    if (signIn.style.display === "none") {
+      signIn.style.display = "block";
+      signUp.style.display = "none";
+    } else {
+      signIn.style.display = "none";
+      signUp.style.display = "block";
+    }
+  }
+  </script>
 </body>
 </html>
