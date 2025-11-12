@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>EduAcademy — Admin Dashboard</title>
 
-  <!-- Keep same style tone as Educademy -->
   <link rel="stylesheet" href="{{ url_for('static', filename='css/Studentdashboard.css') }}">
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
@@ -67,7 +66,6 @@
 </head>
 
 <body>
-  <!-- Navbar -->
   <div class="navbar">
     <button class="logo" onclick="location.href='/'" style="background:none;border:none;cursor:pointer;color:#2563eb;font-size:1.7em;font-weight:bold;">EduAcademy</button>
     <nav class="nav-links">
@@ -78,7 +76,6 @@
 
   <h1>👨‍💼 Admin Dashboard — Student Analytics Overview</h1>
 
-  <!-- Chart Section -->
   <div class="charts">
     <div class="chart-card">
       <h3>📈 Average Quiz Scores per Student</h3>
@@ -91,7 +88,6 @@
     </div>
   </div>
 
-  <!-- Table Section -->
   <div class="table-container">
     <table id="studentTable">
       <thead>
@@ -115,14 +111,12 @@
   <script>
     async function loadAdminData() {
       try {
-        // Fetch all students' quiz records from Flask
         const res = await fetch('/get_analytics_all');
         const data = await res.json();
 
         const tableBody = document.querySelector('#studentTable tbody');
         tableBody.innerHTML = '';
 
-        // Store stats for charts
         const studentScores = {};
         const summaryCounts = {};
 
@@ -138,19 +132,16 @@
             </tr>`;
           tableBody.insertAdjacentHTML('beforeend', row);
 
-          // Collect averages
           if (!studentScores[record.student]) studentScores[record.student] = [];
           studentScores[record.student].push(record.percentage);
         });
 
-        // Compute averages
         const avgLabels = Object.keys(studentScores);
         const avgData = avgLabels.map(name => {
           const arr = studentScores[name];
           return arr.reduce((a,b)=>a+b,0)/arr.length;
         });
 
-        // Render Average Quiz Score Chart
         const avgCtx = document.getElementById('avgScoresChart');
         new Chart(avgCtx, {
           type: 'bar',
@@ -165,13 +156,11 @@
           options: { responsive: true, scales: { y: { beginAtZero: true, max: 100 } } }
         });
 
-        // Fetch summaries per student (from summaries_collection)
         const res2 = await fetch('/get_summary_counts');
         const summaries = await res2.json();
 
         summaries.forEach(s => { summaryCounts[s.student] = s.count; });
 
-        // Render Summary Count Chart
         const sumCtx = document.getElementById('summaryCountChart');
         new Chart(sumCtx, {
           type: 'pie',
@@ -192,7 +181,6 @@
       }
     }
 
-    // Run on load
     loadAdminData();
   </script>
 </body>

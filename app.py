@@ -6,14 +6,11 @@ from flask_session import Session
 from functools import wraps
 import os
 
-# Import modules
 from modules import content_processor, mcq_generator, evaluator, utils, rag_chatbot, config
 
 app = Flask(__name__)
 bcrypt = Bcrypt(app)
 
-# ---------------- CONFIG ----------------
-# Prefer env vars in production; keep safe fallbacks for local
 app.config['UPLOAD_FOLDER'] = getattr(config, 'UPLOAD_DIRECTORY', 'uploads')
 app.secret_key = os.getenv(
     "SECRET_KEY",
@@ -22,15 +19,12 @@ app.secret_key = os.getenv(
 app.config["SESSION_TYPE"] = "filesystem"
 app.config["SESSION_PERMANENT"] = True
 app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(days=7)
-# (Optional hardening; flip to True when serving over HTTPS)
 app.config["SESSION_COOKIE_HTTPONLY"] = True
 app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
-# app.config["SESSION_COOKIE_SECURE"] = True  # enable in production HTTPS
 
 Session(app)
 bot = rag_chatbot.RAGChatbot()
 
-# ---------------- DATABASE ----------------
 MONGO_URI = os.getenv("MONGO_URI", "mongodb://localhost:27017/")
 DB_NAME = os.getenv("DB_NAME", "EduMentorDB")
 
@@ -40,7 +34,6 @@ users_collection = db["users"]
 summaries_collection = db["summaries"]
 quiz_results_collection = db["quiz_results"]
 
-# ---------------- HELPERS ----------------
 def login_required(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
@@ -61,7 +54,6 @@ def sanitize_role(role_val: str) -> str:
     role = (role_val or "").strip().lower()
     return "admin" if role == "admin" else "user"
 
-# ---------------- AUTH ROUTES ----------------
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     """Register a new user or admin"""
@@ -69,7 +61,7 @@ def register():
         data = request.form
         username = (data.get('username') or "").strip()
         password = data.get('password') or ""
-        confirm_password = data.get('confirm_password') or password  # backward compat if not sent
+        confirm_password = data.get('confirm_password') or password
         role = sanitize_role(data.get('role', 'user'))
 
         if not username or not password:
@@ -77,7 +69,6 @@ def register():
         if password != confirm_password:
             return jsonify({"error": "Passwords do not match"}), 400
 
-        # Case-insensitive uniqueness
         if users_collection.find_one({"username": {"$regex": f"^{username}$", "$options": "i"}}):
             return jsonify({"error": "User already exists"}), 400
 
@@ -103,7 +94,6 @@ def login():
 
         user = users_collection.find_one({"username": username})
         if user and bcrypt.check_password_hash(user["password"], password):
-            # Ensure role selection matches stored role
             if selected_role != user.get("role", "user"):
                 return jsonify({"error": "Invalid role selected for this user"}), 403
 
@@ -124,22 +114,20 @@ def logout():
     session.clear()
     return redirect(url_for('home'))
 
-# ---------------- MAIN ROUTES ----------------
 @app.route('/')
 @app.route('/home')
 def home():
-    # Your homepage with modal login/signup
     return render_template('StudentHome.html')
 
 @app.route('/summary')
 @login_required
 def summary_page():
-    return render_template('summary.html')
+    return render_template('Summarizer.html')
 
 @app.route('/mcq')
 @login_required
 def mcq_page():
-    return render_template('mcq.html')
+    return render_template('MCQGenerater.html')
 
 @app.route('/chatbot')
 @login_required
@@ -148,7 +136,7 @@ def chatbot_page():
 
 @app.route('/contact')
 def contact_page():
-    return render_template('contact.html')
+    return render_template('Devcontact.html')
 
 @app.route('/profile')
 @login_required
@@ -162,7 +150,6 @@ def admin_dashboard():
     """Admin Dashboard"""
     return render_template('admin.html')
 
-# (Optional small helper for frontend)
 @app.route('/whoami')
 def whoami():
     return jsonify({
@@ -170,7 +157,6 @@ def whoami():
         "role": session.get("role")
     })
 
-# ---------------- SUMMARIZE & QUIZ ROUTES ----------------
 @app.route('/summarize', methods=['POST'])
 @login_required
 def summarize():
@@ -199,7 +185,6 @@ def summarize():
             "timestamp": datetime.utcnow()
         })
     except Exception as e:
-        # Don't block the UX if analytics write fails
         print("summaries insert error:", e)
 
     return jsonify({'summary': summary, 'mcqs': mcqs})
@@ -234,7 +219,6 @@ def submit_mcqs():
 
     return jsonify({"message": "Result saved successfully!", "data": record})
 
-# ---------------- ANALYTICS ROUTES ----------------
 @app.route('/analytics_summary/<student>', methods=['GET'])
 @login_required
 def analytics_summary(student):
@@ -268,7 +252,6 @@ def analytics_summary(student):
         "summary_types": summary_types
     })
 
-# ---------------- ADMIN DATA ROUTES ----------------
 @app.route('/get_analytics_all')
 @admin_required
 def get_analytics_all():
@@ -286,12 +269,10 @@ def get_summary_counts():
     result = [{"student": s["_id"], "count": s["count"]} for s in summaries]
     return jsonify(result)
 
-# ---------------- HEALTH CHECK ----------------
 @app.route('/health')
 def health():
     return jsonify({"status": "ok"})
 
-# ---------------- RUN ----------------
 if __name__ == '__main__':
     os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
     app.run(debug=True)

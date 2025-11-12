@@ -6,7 +6,6 @@
   <title>Educademy</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/StudentHome.css') }}">
   <style>
-    /* --- Modal Styling --- */
     #authModal {
       position: fixed;
       top: 0; left: 0;
@@ -93,13 +92,11 @@
 </head>
 
 <body>
-  <!-- PRELOADER -->
   <div id="preloader">
     <div class="preloader-logo">Educademy</div>
     <div class="loading-dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
   </div>
 
-  <!-- NAVBAR -->
   <div class="navbar">
     <span class="logo">Educademy</span>
     <nav class="nav-links">
@@ -110,7 +107,6 @@
     </nav>
   </div>
 
-  <!-- MAIN CONTENT -->
   <div class="main-content">
     <div class="main-text">
       <h1 class="welcome-text">Welcome <br> to Educademy</h1>
@@ -121,7 +117,6 @@
     </div>
   </div>
 
-  <!-- FEATURES -->
   <div class="features-section">
     <h2>Explore Our Core Features</h2>
     <div class="features-grid">
@@ -156,15 +151,12 @@
     </div>
   </div>
 
-  <!-- ABOUT -->
   <div id="about" class="about-section">
     <h2>Who We Are</h2>
     <p>We are a team dedicated to transforming education by moving beyond the traditional one-size-fits-all approach. Our mission is to provide students with personalized learning experiences that adapt to their unique attention spans, learning speeds, and comprehension levels. By integrating real-time academic assistance, smart content summarization, and automated performance tracking, we aim to make learning more engaging, effective, and accessible for every student.</p>
   </div>
 
-  <!-- AUTH MODAL -->
   <div id="authModal" class="auth-modal">
-    <!-- SIGN IN FORM -->
     <div id="signInForm" class="auth-box">
       <span class="close-btn" onclick="closeAuthModal()">×</span>
       <h2>Sign In</h2>
@@ -186,7 +178,6 @@
       <p>Don't have an account? <a href="#" onclick="toggleForms()">Sign Up</a></p>
     </div>
 
-    <!-- SIGN UP FORM -->
     <div id="signUpForm" class="auth-box" style="display:none;">
       <span class="close-btn" onclick="closeAuthModal()">×</span>
       <h2>Sign Up</h2>
@@ -212,7 +203,6 @@
     </div>
   </div>
 
-  <!-- FOOTER -->
   <footer>
     <div class="footer-grid">
       <div>
@@ -235,9 +225,7 @@
     <div class="copyright">&copy; 2025 Educademy. All rights reserved.</div>
   </footer>
 
-  <!-- JS -->
   <script>
-  // ✅ Fix: hide preloader after load
   window.addEventListener("load", () => {
     const preloader = document.getElementById("preloader");
     if (preloader) {
