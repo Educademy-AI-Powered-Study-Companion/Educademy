@@ -1,126 +1,100 @@
-import logging, hashlib, torch
+import logging
+import torch
+import hashlib
 from langchain_community.llms import Ollama
 from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_community.vectorstores import FAISS
-try:
-    from langchain.text_splitter import RecursiveCharacterTextSplitter
-except Exception:
-    try:
-        from langchain_text_splitters import RecursiveCharacterTextSplitter
-    except Exception:
-        import logging as _lg
-        _lg.warning("rag_chatbot: langchain text splitter not available; using fallback splitter.")
-        class RecursiveCharacterTextSplitter:
-            def __init__(self, chunk_size=1000, chunk_overlap=100):
-                self.chunk_size = int(chunk_size)
-                self.chunk_overlap = int(chunk_overlap)
-
-            def split_text(self, text: str):
-                if not text or not text.strip():
-                    return []
-                text = text.strip()
-                if len(text) <= self.chunk_size:
-                    return [text]
-                chunks = []
-                start = 0
-                step = self.chunk_size - self.chunk_overlap
-                while start < len(text):
-                    end = start + self.chunk_size
-                    chunks.append(text[start:end])
-                    start += max(1, step)
-                return chunks
-try:
-    from langchain.chains import RetrievalQA
-except Exception:
-    RetrievalQA = None
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain.chains import RetrievalQA
 from langchain_core.prompts import PromptTemplate
 from . import config
 
 class RAGChatbot:
+    """A chatbot that uses Ollama and a local RAG pipeline with caching."""
     def __init__(self):
+        logging.info("Initializing RAG Chatbot with Ollama.")
         self.llm = Ollama(model=config.CHATBOT_MODEL_ID, temperature=0.2)
-        device = getattr(config, 'DEVICE', 'cpu')
-        model_kwargs = {'device': device}
-        self.embedding = HuggingFaceEmbeddings(model_name=config.EMBEDDING_MODEL_ID, model_kwargs=model_kwargs, encode_kwargs={'normalize_embeddings':True})
-        self.retriever = None; self.qa_chain = None; self._doc_hash = None; self._cache = {}
-    def _prompt(self):
-        return PromptTemplate(template="Context: {context}\nQuestion: {question}\nAnswer:", input_variables=["context","question"])
-    def setup_document(self, full_text):
-        h = hashlib.md5(full_text.encode()).hexdigest()
-        if h == self._doc_hash and h in self._cache:
-            self.retriever = self._cache[h].as_retriever(search_kwargs={"k":config.TOP_K_RETRIEVED_CHUNKS}); return
-        splitter = RecursiveCharacterTextSplitter(chunk_size=min(1500,max(500,len(full_text)//50)), chunk_overlap=100)
-        chunks = splitter.split_text(full_text)
-        if not chunks: return
-        try:
-            vs = FAISS.from_texts(texts=chunks, embedding=self.embedding); self._cache[h] = vs
-            if len(self._cache)>5: self._cache.pop(next(iter(self._cache)))
-            self.retriever = vs.as_retriever(search_kwargs={"k":config.TOP_K_RETRIEVED_CHUNKS}); self._doc_hash = h
-        except Exception:
-            logging.exception("faiss")
-        if RetrievalQA is not None:
-            self.qa_chain = RetrievalQA.from_chain_type(llm=self.llm, chain_type="stuff", retriever=self.retriever, chain_type_kwargs={"prompt":self._prompt()}, return_source_documents=False)
+        self.embedding_model = HuggingFaceEmbeddings(
+            model_name=config.EMBEDDING_MODEL_ID,
+            model_kwargs={'device': 'cuda' if torch.cuda.is_available() else 'cpu'},
+            encode_kwargs={'normalize_embeddings': True, 'batch_size': 32}
+        )
+        self.retriever = None
+        self.qa_chain = None
+        self._document_hash = None
+        self._vector_store_cache = {}
+        self._prompt_template = None
+        logging.info(f"RAG Chatbot initialized to use Ollama model '{config.CHATBOT_MODEL_ID}'.")
+
+    def _get_prompt_template(self):
+        """Get or create prompt template."""
+        if self._prompt_template is None:
+            self._prompt_template = PromptTemplate(
+                template="""Use the following pieces of context to answer the user's question.
+If you don't know the answer from the context, just say that you don't know. Do not try to make up an answer.
+
+Context: {context}
+Question: {question}
+
+Helpful Answer:""",
+                input_variables=["context", "question"]
+            )
+        return self._prompt_template
+
+    def setup_document(self, full_text: str):
+        """Processes and indexes a document for RAG with caching."""
+        doc_hash = hashlib.md5(full_text.encode()).hexdigest()
+        
+        if doc_hash == self._document_hash and doc_hash in self._vector_store_cache:
+            logging.info("Reusing cached vector store for same document.")
+            self.retriever = self._vector_store_cache[doc_hash].as_retriever(
+                search_kwargs={"k": config.TOP_K_RETRIEVED_CHUNKS}
+            )
         else:
-            class _FallbackRetrievalQA:
-                def __init__(self, llm, retriever, prompt_template):
-                    self.llm = llm
-                    self.retriever = retriever
-                    self.prompt_template = prompt_template
+            logging.info(f"Setting up RAG for a document of {len(full_text)} characters.")
+            chunk_size = min(1500, max(500, len(full_text) // 50))
+            text_splitter = RecursiveCharacterTextSplitter(
+                chunk_size=chunk_size, 
+                chunk_overlap=min(200, chunk_size // 5)
+            )
+            chunks = text_splitter.split_text(full_text)
+            if not chunks:
+                logging.warning("Text splitting resulted in no chunks.")
+                return
+            try:
+                vector_store = FAISS.from_texts(texts=chunks, embedding=self.embedding_model)
+                self._vector_store_cache[doc_hash] = vector_store
+                if len(self._vector_store_cache) > 5:
+                    oldest_key = next(iter(self._vector_store_cache))
+                    del self._vector_store_cache[oldest_key]
+                
+                self.retriever = vector_store.as_retriever(
+                    search_kwargs={"k": config.TOP_K_RETRIEVED_CHUNKS}
+                )
+                self._document_hash = doc_hash
+                logging.info("FAISS vector store and retriever created successfully.")
+            except Exception as e:
+                logging.error(f"Failed to create FAISS vector store. Error: {e}", exc_info=True)
+                return
+        
+        PROMPT = self._get_prompt_template()
+        self.qa_chain = RetrievalQA.from_chain_type(
+            llm=self.llm,
+            chain_type="stuff",
+            retriever=self.retriever,
+            chain_type_kwargs={"prompt": PROMPT},
+            return_source_documents=False
+        )
+        logging.info("RAG chain has been created and is ready.")
 
-                def invoke(self, data: dict):
-                    question = data.get("query", "")
-                    docs = self.retriever.get_relevant_documents(question)
-                    context = "\n\n".join([d.page_content for d in docs[:3]])
-                    try:
-                        prompt_text = self.prompt_template.format(context=context, question=question)
-                    except Exception:
-                        prompt_text = f"Context: {context}\nQuestion: {question}\nAnswer:"
-                    res = self.llm.invoke(prompt_text)
-                    if isinstance(res, dict):
-                        return {"result": res.get("text", "") or res.get("result", "") or str(res)}
-                    return {"result": str(res)}
-
-            self.qa_chain = _FallbackRetrievalQA(self.llm, self.retriever, self._prompt())
-
-    def answer_query(self, query, use_document=True):
+    def answer_query(self, query: str) -> str:
+        """Answers a user's query using the fully configured RAG chain."""
+        if not self.qa_chain:
+            return "The document has not been processed yet or an error occurred during setup."
+        logging.info(f"Invoking RAG chain with query: '{query}'")
         try:
-            if use_document and self.qa_chain:
-                res = self.qa_chain.invoke({"query":query}); ans = res.get("result","I couldn't find an answer.")
-                if any(x in ans.lower() for x in ["don't know","not mentioned","not in the context"]): return self._general(query)
-                return ans
-            return self._general(query)
-        except Exception:
-            logging.exception("answer"); return self._general(query)
-
-    def _general(self, query):
-        try:
-            prompt = f"You are helpful. Question: {query}\nAnswer:"
-            return self.llm.invoke(prompt).strip()
-        except Exception:
-            logging.exception("general"); return "Error: LLM failed."
-
-    def answer_query_stream(self, query, use_document=True):
-        import json
-        try:
-            if use_document and self.qa_chain and self.retriever:
-                docs = self.retriever.get_relevant_documents(query); context = "\n\n".join([d.page_content for d in docs[:3]])
-                prompt = f"Context: {context}\nQuestion: {query}\nAnswer:"
-                yield f"data: {json.dumps({'type':'start'})}\n\n"
-                streamllm = Ollama(model=config.CHATBOT_MODEL_ID, temperature=0.2, streaming=True)
-                full = ""
-                for chunk in streamllm.stream(prompt):
-                    txt = str(chunk); full += txt; yield f"data: {json.dumps({'type':'chunk','content':txt})}\n\n"
-                yield f"data: {json.dumps({'type':'done','full_content':full})}\n\n"
-            else:
-                for chunk in self._general_stream(query): yield chunk
-        except Exception:
-            logging.exception("stream"); yield f"data: {json.dumps({'type':'error','content':'Error'})}\n\n"
-
-    def _general_stream(self, query):
-        import json
-        yield f"data: {json.dumps({'type':'start'})}\n\n"
-        streamllm = Ollama(model=config.CHATBOT_MODEL_ID, temperature=0.2, streaming=True)
-        full = ""
-        for chunk in streamllm.stream(f"You are helpful. Question: {query}\nAnswer:"):
-            txt = str(chunk); full += txt; yield f"data: {json.dumps({'type':'chunk','content':txt})}\n\n"
-        yield f"data: {json.dumps({'type':'done','full_content':full})}\n\n"
+            result = self.qa_chain.invoke({"query": query})
+            return result.get("result", "I could not find an answer.")
+        except Exception as e:
+            logging.error(f"Error during RAG chain invocation: {e}", exc_info=True)
+            return "An error occurred while generating the answer. Make sure your Ollama app is running."
