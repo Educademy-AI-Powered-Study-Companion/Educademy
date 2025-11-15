@@ -6,7 +6,6 @@ from flask_session import Session
 from functools import wraps
 import os
 
-# Import modules
 from modules import content_processor, mcq_generator, evaluator, utils, rag_chatbot, config
 
 app = Flask(__name__)
@@ -28,15 +27,18 @@ Session(app)
 bot = rag_chatbot.RAGChatbot()
 
 # ---------------- DATABASE ----------------
-client = MongoClient(os.getenv("MONGO_URI", "mongodb://localhost:27017/"))
-db = client[os.getenv("DB_NAME", "EduMentorDB")]
+MONGO_URI = os.getenv("MONGO_URI", "mongodb://localhost:27017/")
+DB_NAME = os.getenv("DB_NAME", "EduMentorDB")
+
+client = MongoClient(MONGO_URI)
+db = client[DB_NAME]
 
 users_collection = db["users"]
 summaries_collection = db["summaries"]
 quiz_results_collection = db["quiz_results"]
 session_logs_collection = db["session_logs"]  # NEW
 
-# ---------------- HELPERS ----------------
+# ---------------- AUTH DECORATORS ----------------
 def login_required(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
@@ -57,7 +59,7 @@ def sanitize_role(role_val: str) -> str:
     role = (role_val or "").strip().lower()
     return "admin" if role == "admin" else "user"
 
-# ---------------- AUTH ROUTES ----------------
+# ---------------- REGISTER ----------------
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
@@ -72,7 +74,8 @@ def register():
         if password != confirm_password:
             return jsonify({"error": "Passwords do not match"}), 400
 
-        if users_collection.find_one({"username": username}):
+        # Case-insensitive username check
+        if users_collection.find_one({"username": {"$regex": f"^{username}$", "$options": "i"}}):
             return jsonify({"error": "User already exists"}), 400
 
         hashed_pw = bcrypt.generate_password_hash(password).decode('utf-8')
@@ -87,10 +90,9 @@ def register():
 
     return redirect(url_for("home", login="required"))
 
-
+# ---------------- LOGIN ----------------
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    """Login logic – modal-based login"""
     if request.method == 'POST':
         data = request.form
         username = (data.get("username") or "").strip()
@@ -100,15 +102,15 @@ def login():
         user = users_collection.find_one({"username": username})
 
         if user and bcrypt.check_password_hash(user["password"], password):
-            if selected_role != user.get("role"):
-                return jsonify({"error": "Incorrect role selected"}), 403
+            if selected_role != user.get("role", "user"):
+                return jsonify({"error": "Invalid role selected for this user"}), 403
 
             # Session start
             session["username"] = username
             session["role"] = user["role"]
             session["login_time"] = datetime.utcnow()
 
-            # Log login
+            # Log session start
             session_logs_collection.insert_one({
                 "username": username,
                 "role": user["role"],
@@ -123,13 +125,11 @@ def login():
 
         return jsonify({"error": "Invalid credentials"}), 401
 
-    # GET: Open modal on homepage
     return redirect(url_for("home", login="required"))
 
-
+# ---------------- LOGOUT ----------------
 @app.route('/logout')
 def logout():
-    """Record logout + clear session"""
     username = session.get("username")
     login_time = session.get("login_time")
 
@@ -139,56 +139,51 @@ def logout():
 
         session_logs_collection.update_one(
             {"username": username, "logout_time": None},
-            {"$set": {"logout_time": logout_time, "duration_minutes": round(duration, 2)}}
+            {"$set": {
+                "logout_time": logout_time,
+                "duration_minutes": round(duration, 2)
+            }}
         )
 
     session.clear()
     return redirect(url_for("home"))
 
-
-# ---------------- MAIN ROUTES ----------------
+# ---------------- ROUTES ----------------
 @app.route('/')
 @app.route('/home')
 def home():
     return render_template('StudentHome.html')
-
 
 @app.route('/summary')
 @login_required
 def summary_page():
     return render_template('Summarizer.html')
 
-
 @app.route('/mcq')
 @login_required
 def mcq_page():
     return render_template('MCQGenerater.html')
-
 
 @app.route('/chatbot')
 @login_required
 def chatbot_page():
     return render_template('chatbot.html')
 
-
 @app.route('/contact')
 def contact_page():
     return render_template('Devcontact.html')
-
 
 @app.route('/profile')
 @login_required
 def profile_page():
     return render_template('Studentdashboard.html', username=session.get("username"))
 
-
 @app.route('/admin-dashboard')
 @admin_required
 def admin_dashboard():
     return render_template('admin.html')
 
-
-# ---------------- API: USER INFO ----------------
+# ---------------- USER INFO ----------------
 @app.route('/whoami')
 def whoami():
     return jsonify({
@@ -196,8 +191,7 @@ def whoami():
         "role": session.get("role")
     })
 
-
-# ---------------- SUMMARIZER ROUTE ----------------
+# ---------------- SUMMARIZER ----------------
 @app.route('/summarize', methods=['POST'])
 @login_required
 def summarize():
@@ -215,17 +209,28 @@ def summarize():
     summary = content_processor.generate_bullet_point_summary(text)
     mcqs = mcq_generator.generate_meaningful_mcqs(summary, num_questions=5)
 
-    summaries_collection.insert_one({
-        "student": session["username"],
-        "source_filename": file.filename if file else "text_input",
-        "source_type": "pdf" if file else "text",
-        "char_count": len(text),
-        "summary_bullets": len(summary.split("\n")),
-        "timestamp": datetime.utcnow()
-    })
+    # Improved summary metadata storage
+    try:
+        fname = file.filename if (file and getattr(file, 'filename', None)) else "text_input"
+        ftype = "text"
+
+        if file and file.filename.lower().endswith('.pdf'):
+            ftype = "pdf"
+        elif file and file.filename.lower().endswith(('.ppt', '.pptx')):
+            ftype = "ppt"
+
+        summaries_collection.insert_one({
+            "student": session["username"],
+            "source_filename": fname,
+            "source_type": ftype,
+            "char_count": len(text),
+            "summary_bullets": len([ln for ln in summary.split("\n") if ln.strip()]),
+            "timestamp": datetime.utcnow()
+        })
+    except Exception as e:
+        print("summaries insert error:", e)
 
     return jsonify({'summary': summary, 'mcqs': mcqs})
-
 
 # ---------------- MCQ SUBMISSION ----------------
 @app.route('/submit_mcqs', methods=['POST'])
@@ -250,9 +255,8 @@ def submit_mcqs():
     quiz_results_collection.insert_one(record)
     return jsonify({"message": "Result saved", "data": record})
 
-
 # ---------------- ANALYTICS ROUTES ----------------
-@app.route('/analytics_summary/<student>')
+@app.route('/analytics_summary/<student>', methods=['GET'])
 @login_required
 def analytics_summary(student):
     viewer = session.get("username")
@@ -273,8 +277,7 @@ def analytics_summary(student):
         {"$group": {"_id": "$filename", "avgPercentage": {"$avg": "$percentage"}}}
     ])
 
-    score_by_file = [{"file": s["_id"],
-                      "avg": round(s["avgPercentage"] or 0, 2)} for s in score_cursor]
+    score_by_file = [{"file": s["_id"], "avg": round(s["avgPercentage"] or 0, 2)} for s in score_cursor]
 
     summary_cursor = summaries_collection.aggregate([
         {"$match": {"student": student}},
@@ -289,14 +292,12 @@ def analytics_summary(student):
         "summary_types": summary_types
     })
 
-
-# ---------------- ADMIN ROUTES ----------------
+# ---------------- ADMIN: GET ALL ANALYTICS ----------------
 @app.route('/get_analytics_all')
 @admin_required
 def get_analytics_all():
     records = list(quiz_results_collection.find({}, {"_id": 0}))
     return jsonify(records)
-
 
 @app.route('/get_summary_counts')
 @admin_required
@@ -306,19 +307,17 @@ def get_summary_counts():
     ])
     return jsonify([{"student": d["_id"], "count": d["count"]} for d in data])
 
-
+# ---------------- SESSION LOGS (ADMIN) ----------------
 @app.route('/get_session_logs')
 @admin_required
 def get_session_logs():
     records = list(session_logs_collection.find({}, {"_id": 0}))
     return jsonify(records)
 
-
 # ---------------- HEALTH ----------------
 @app.route('/health')
 def health():
     return jsonify({"status": "ok"})
-
 
 # ---------------- RUN ----------------
 if __name__ == '__main__':

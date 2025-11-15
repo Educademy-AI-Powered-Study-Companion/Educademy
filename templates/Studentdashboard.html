@@ -5,15 +5,12 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Educademy — Profile</title>
 
-  <!-- Keep your existing dashboard CSS -->
   <link rel="stylesheet" href="{{ url_for('static', filename='css/Studentdashboard.css') }}">
   
-  <!-- Chart.js for analytics -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
 
-  <!-- ✅ Navbar (unchanged) -->
   <div class="navbar">
         <button class="logo" onclick="location.href='/'" style="background:none;border:none;cursor:pointer;color:#2d7be5;font-size:1.7em;font-weight:bold;letter-spacing:1px;user-select:none;">Educademy</button>
         <nav class="nav-links">
@@ -24,7 +21,6 @@
         </nav>
   </div>
 
-  <!-- ✅ Profile header section (kept same) -->
   <section class="welcome-section" aria-labelledby="welcome-heading">
     <div class="profile-wrapper" style="position:relative;">
       <img id="avatarImg" class="avatar" src="https://images.unsplash.com/photo-1583440194369-ac78b451536a?w=600&auto=format&fit=crop&q=60" alt="Profile picture">
@@ -43,7 +39,6 @@
     <p class="welcome-sub">Here’s a snapshot of your learning progress.</p>
   </section>
 
-  <!-- ✅ Chart Section (new but themed like your dashboard) -->
   <main class="main" role="main">
     <section class="card" aria-labelledby="progress-heading">
       <h3 id="progress-heading">📊 Learning Analytics</h3>
@@ -63,7 +58,6 @@
     </section>
   </main>
 
-  <!-- ✅ Footer (same) -->
   <footer>
     <div class="footer-grid">
       <div>
@@ -88,9 +82,7 @@
     <div class="copyright">&copy; 2025 Educademy. All rights reserved.</div>
   </footer>
 
-  <!-- ✅ Chart.js Integration Script -->
   <script>
-    // Auto-load current logged-in user from session (passed by Flask)
     const currentUser = "{{ session.get('username', '') }}";
 
     async function loadAnalytics(student) {
@@ -98,12 +90,10 @@
         const response = await fetch(`/analytics_summary/${student}`);
         const data = await response.json();
 
-        // Destroy existing charts if reloaded
         if (window.quizChart) window.quizChart.destroy();
         if (window.fileChart) window.fileChart.destroy();
         if (window.typeChart) window.typeChart.destroy();
 
-        // 📈 Quiz Trend
         const quizCtx = document.getElementById("quizTrend");
         window.quizChart = new Chart(quizCtx, {
           type: 'line',
@@ -121,7 +111,6 @@
           options: { responsive: true, scales: { y: { beginAtZero: true, max: 100 } } }
         });
 
-        // 📊 Avg Score by File
         const fileCtx = document.getElementById("scoreByFile");
         window.fileChart = new Chart(fileCtx, {
           type: 'bar',
@@ -136,7 +125,6 @@
           options: { responsive: true, scales: { y: { beginAtZero: true, max: 100 } } }
         });
 
-        // 🍩 Summaries by Type
         const typeCtx = document.getElementById("summaryByType");
         window.typeChart = new Chart(typeCtx, {
           type: 'doughnut',
@@ -159,7 +147,6 @@
       }
     }
 
-    // Load automatically for logged-in student
     if (currentUser) loadAnalytics(currentUser);
   </script>
 

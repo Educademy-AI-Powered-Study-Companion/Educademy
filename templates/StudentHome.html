@@ -7,7 +7,6 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='css/StudentHome.css') }}">
 
   <style>
-    /* --- Modal Styling --- */
     #authModal {
       position: fixed;
       top: 0; left: 0;
@@ -94,13 +93,11 @@
 </head>
 
 <body>
-  <!-- PRELOADER -->
   <div id="preloader">
     <div class="preloader-logo">Educademy</div>
     <div class="loading-dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
   </div>
 
-  <!-- NAVBAR -->
   <div class="navbar">
     <span class="logo">Educademy</span>
     <nav class="nav-links">
@@ -124,7 +121,6 @@
 
   </div>
 
-  <!-- MAIN CONTENT -->
   <div class="main-content">
     <div class="main-text">
       <h1 class="welcome-text">Welcome <br> to Educademy</h1>
@@ -135,12 +131,11 @@
     </div>
   </div>
 
-  <!-- FEATURES -->
   <div class="features-section">
     <h2>Explore Our Core Features</h2>
     <div class="features-grid">
 
-      <!-- Protected Links: Flask redirects to /login?next=feature -->
+      <!-- Protected Links -->
       <a href="/chatbot" class="feature-card">
         <div class="feature-icon">
           <svg ...></svg>
@@ -175,13 +170,11 @@
     </div>
   </div>
 
-  <!-- ABOUT -->
   <div id="about" class="about-section">
     <h2>Who We Are</h2>
     <p>We provide personalized education with AI assistance.</p>
   </div>
 
-  <!-- AUTH MODAL -->
   <div id="authModal" class="auth-modal">
 
     <!-- SIGN IN -->
@@ -234,7 +227,6 @@
     </div>
   </div>
 
-  <!-- FOOTER -->
   <footer>
     <div class="footer-grid">
       <div>
@@ -254,9 +246,9 @@
         <a href="#">GitHub</a><a href="#">Twitter</a><a href="#">LinkedIn</a><a href="mailto:adarsh.kushwaha_cs23@gla.ac.in">Email</a>
       </div>
     </div>
-    <div class="copyright">&copy; 2025 Educademy. All rights reserved.</div>  </footer>
+    <div class="copyright">&copy; 2025 Educademy. All rights reserved.</div>
+  </footer>
 
-  <!-- JS -->
   <script>
     // --- Preloader fadeout ---
     window.addEventListener("load", () => {
@@ -282,7 +274,7 @@
       signUp.style.display = signUp.style.display === "none" ? "block" : "none";
     }
 
-    // ⭐ When Flask redirects using /?login=required → Open login modal automatically
+    // Open login modal automatically when /home?login=required
     window.addEventListener("DOMContentLoaded", function() {
       const params = new URLSearchParams(window.location.search);
       if (params.get("login") === "required") {
