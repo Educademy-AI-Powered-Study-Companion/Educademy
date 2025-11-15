@@ -539,3 +539,9 @@ footer {
     font-size: 1.5rem;
   }
 }
+.profile-btn {
+    background: #4a90e2;
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+}
