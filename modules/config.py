@@ -1,11 +1,20 @@
-UPLOAD_DIRECTORY="uploads"
+"""
+Central configuration file for the Educademy application.
+This version is optimized to use different Ollama models for different tasks.
+"""
 
-LOG_FILE="app.log"
-LOG_LEVEL="INFO"
+UPLOAD_DIRECTORY = "uploads"
 
-EMBEDDING_MODEL_ID="BAAI/bge-large-en-v1.5"
-CHATBOT_MODEL_ID="llama3:8b"
-PROCESSING_MODEL_ID="gemma:2b"
+LOG_FILE = "app.log"
+LOG_LEVEL = "INFO"
 
-MAX_MCQS_TO_GENERATE=10
-TOP_K_RETRIEVED_CHUNKS=3
+EMBEDDING_MODEL_ID = "BAAI/bge-large-en-v1.5"
+
+CHATBOT_MODEL_ID = "llama3:8b"
+
+
+PROCESSING_MODEL_ID = "gemma:2b"
+
+MAX_MCQS_TO_GENERATE = 10
+
+TOP_K_RETRIEVED_CHUNKS = 3
