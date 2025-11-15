@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Educademy</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/StudentHome.css') }}">
+
   <style>
     /* --- Modal Styling --- */
     #authModal {
@@ -103,11 +104,24 @@
   <div class="navbar">
     <span class="logo">Educademy</span>
     <nav class="nav-links">
+
+  {% if session.get('username') %}
+      <!-- If logged in -->
+      <span class="nav-link">Welcome, {{ session['username'] }}</span>
+      <a href="/profile" class="nav-link">Dashboard</a>
+      <a href="/logout" class="nav-link">Logout</a>
+
+  {% else %}
+      <!-- If NOT logged in -->
       <span class="nav-link" onclick="openAuthModal()">Sign In</span>
-      <a href="#about" class="nav-link">About</a>
-      <a href="/contact" class="nav-link">Contact</a>
-      <button class="profile-btn" onclick="location.href='/profile'">👤</button>
-    </nav>
+  {% endif %}
+
+  <a href="#about" class="nav-link">About</a>
+  <a href="/contact" class="nav-link">Contact</a>
+  
+</nav>
+
+
   </div>
 
   <!-- MAIN CONTENT -->
@@ -125,33 +139,38 @@
   <div class="features-section">
     <h2>Explore Our Core Features</h2>
     <div class="features-grid">
+
+      <!-- Protected Links: Flask redirects to /login?next=feature -->
       <a href="/chatbot" class="feature-card">
         <div class="feature-icon">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2z"></path></svg>
+          <svg ...></svg>
         </div>
         <h3>Doubt-Solving Chatbot</h3>
-        <p>Get instant, 24/7 answers to your academic questions and clear your doubts on the spot.</p>
+        <p>Get instant, 24/7 answers to your academic questions.</p>
       </a>
+
       <a href="/summary" class="feature-card">
         <div class="feature-icon">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M14 2H6c-1.1 0-1.99.9-1.99 2L4 20c0 1.1.89 2 1.99 2H18c1.1 0 2-.9 2-2V8l-6-6zM6 20V4h7v5h5v11H6z"></path></svg>
+          <svg ...></svg>
         </div>
         <h3>Content Summarization</h3>
-        <p>Transform long texts and documents into concise, easy-to-understand summaries in seconds.</p>
+        <p>Transform long texts into concise notes.</p>
       </a>
+
       <a href="/profile" class="feature-card">
         <div class="feature-icon">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M3.5 18.49l6-6.01 4 4L22 6.92l-1.41-1.41-7.09 7.09-4-4L2 16.99z"></path></svg>
+          <svg ...></svg>
         </div>
         <h3>Student Progress</h3>
-        <p>Track your learning journey with automated performance analysis and personalized feedback.</p>
+        <p>Track your learning journey with analytics.</p>
       </a>
+
       <a href="/mcq" class="feature-card">
         <div class="feature-icon">
-          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"></path></svg>
+          <svg ...></svg>
         </div>
         <h3>MCQ Generator</h3>
-        <p>Create practice quizzes from any content to test your knowledge and prepare for exams.</p>
+        <p>Create practice quizzes instantly.</p>
       </a>
     </div>
   </div>
@@ -159,21 +178,22 @@
   <!-- ABOUT -->
   <div id="about" class="about-section">
     <h2>Who We Are</h2>
-    <p>We are a team dedicated to transforming education by moving beyond the traditional one-size-fits-all approach. Our mission is to provide students with personalized learning experiences that adapt to their unique attention spans, learning speeds, and comprehension levels. By integrating real-time academic assistance, smart content summarization, and automated performance tracking, we aim to make learning more engaging, effective, and accessible for every student.</p>
+    <p>We provide personalized education with AI assistance.</p>
   </div>
 
   <!-- AUTH MODAL -->
   <div id="authModal" class="auth-modal">
-    <!-- SIGN IN FORM -->
+
+    <!-- SIGN IN -->
     <div id="signInForm" class="auth-box">
       <span class="close-btn" onclick="closeAuthModal()">×</span>
       <h2>Sign In</h2>
       <form method="POST" action="/login">
         <label>Username</label>
-        <input type="text" name="username" placeholder="Enter your username" required>
+        <input type="text" name="username" required>
 
         <label>Password</label>
-        <input type="password" name="password" placeholder="Enter your password" required>
+        <input type="password" name="password" required>
 
         <label>Role</label>
         <select name="role" required>
@@ -183,22 +203,23 @@
 
         <button type="submit" class="auth-btn">Sign In</button>
       </form>
+
       <p>Don't have an account? <a href="#" onclick="toggleForms()">Sign Up</a></p>
     </div>
 
-    <!-- SIGN UP FORM -->
+    <!-- SIGN UP -->
     <div id="signUpForm" class="auth-box" style="display:none;">
       <span class="close-btn" onclick="closeAuthModal()">×</span>
       <h2>Sign Up</h2>
       <form method="POST" action="/register">
         <label>Full Name</label>
-        <input type="text" name="username" placeholder="Enter your name" required>
+        <input type="text" name="username" required>
 
         <label>Password</label>
-        <input type="password" name="password" placeholder="Enter password" required>
+        <input type="password" name="password" required>
 
         <label>Confirm Password</label>
-        <input type="password" name="confirm_password" placeholder="Confirm password" required>
+        <input type="password" name="confirm_password" required>
 
         <label>Role</label>
         <select name="role" required>
@@ -208,6 +229,7 @@
 
         <button type="submit" class="auth-btn">Sign Up</button>
       </form>
+
       <p>Already have an account? <a href="#" onclick="toggleForms()">Sign In</a></p>
     </div>
   </div>
@@ -232,37 +254,42 @@
         <a href="#">GitHub</a><a href="#">Twitter</a><a href="#">LinkedIn</a><a href="mailto:adarsh.kushwaha_cs23@gla.ac.in">Email</a>
       </div>
     </div>
-    <div class="copyright">&copy; 2025 Educademy. All rights reserved.</div>
-  </footer>
+    <div class="copyright">&copy; 2025 Educademy. All rights reserved.</div>  </footer>
 
   <!-- JS -->
   <script>
-  // ✅ Fix: hide preloader after load
-  window.addEventListener("load", () => {
-    const preloader = document.getElementById("preloader");
-    if (preloader) {
-      preloader.style.opacity = "0";
-      setTimeout(() => preloader.style.display = "none", 400);
-    }
-  });
+    // --- Preloader fadeout ---
+    window.addEventListener("load", () => {
+      const preloader = document.getElementById("preloader");
+      if (preloader) {
+        preloader.style.opacity = "0";
+        setTimeout(() => preloader.style.display = "none", 400);
+      }
+    });
 
-  function openAuthModal() {
-    document.getElementById("authModal").classList.add("active");
-  }
-  function closeAuthModal() {
-    document.getElementById("authModal").classList.remove("active");
-  }
-  function toggleForms() {
-    const signIn = document.getElementById("signInForm");
-    const signUp = document.getElementById("signUpForm");
-    if (signIn.style.display === "none") {
-      signIn.style.display = "block";
-      signUp.style.display = "none";
-    } else {
-      signIn.style.display = "none";
-      signUp.style.display = "block";
+    function openAuthModal() {
+      document.getElementById("authModal").classList.add("active");
     }
-  }
+
+    function closeAuthModal() {
+      document.getElementById("authModal").classList.remove("active");
+    }
+
+    function toggleForms() {
+      const signIn = document.getElementById("signInForm");
+      const signUp = document.getElementById("signUpForm");
+      signIn.style.display = signIn.style.display === "none" ? "block" : "none";
+      signUp.style.display = signUp.style.display === "none" ? "block" : "none";
+    }
+
+    // ⭐ When Flask redirects using /?login=required → Open login modal automatically
+    window.addEventListener("DOMContentLoaded", function() {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("login") === "required") {
+        openAuthModal();
+      }
+    });
   </script>
+
 </body>
 </html>
