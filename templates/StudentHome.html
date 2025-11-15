@@ -37,150 +37,102 @@
       animation: fadeIn 0.3s ease;
     }
 
-    .auth-box h2 {
-      color: #2563eb;
-      margin-bottom: 20px;
-    }
-
-    .auth-box label {
-      display: block;
-      text-align: left;
-      font-weight: 500;
-      margin-top: 10px;
-      color: #333;
-    }
-
-    .auth-box input, .auth-box select {
-      width: 100%;
-      padding: 8px;
-      margin-top: 5px;
-      border: 1px solid #ccc;
-      border-radius: 8px;
-      outline: none;
-      font-size: 14px;
-    }
+    .auth-box h2 { color: #2563eb; margin-bottom: 20px; }
+    .auth-box label { display: block; text-align: left; margin-top: 10px; }
+    .auth-box input { width: 100%; padding: 8px; border-radius: 8px; border: 1px solid #ccc; }
 
     .auth-btn {
-      width: 100%;
-      padding: 10px;
-      margin-top: 18px;
-      background: #2563eb;
-      color: #fff;
-      border: none;
-      border-radius: 8px;
-      font-weight: 600;
-      cursor: pointer;
-    }
-
-    .auth-btn:hover {
-      background: #1d4ed8;
+      width: 100%; padding: 10px; margin-top: 18px;
+      background: #2563eb; color: #fff; border: none;
+      border-radius: 8px; cursor: pointer; font-weight: 600;
     }
 
     .close-btn {
-      position: absolute;
-      right: 20px;
-      top: 15px;
-      font-size: 24px;
-      cursor: pointer;
-      color: #555;
-    }
-
-    @keyframes fadeIn {
-      from { transform: scale(0.9); opacity: 0; }
-      to { transform: scale(1); opacity: 1; }
+      position: absolute; right: 20px; top: 15px;
+      font-size: 24px; cursor: pointer;
     }
   </style>
 </head>
 
 <body>
+  <!-- Preloader -->
   <div id="preloader">
     <div class="preloader-logo">Educademy</div>
     <div class="loading-dots"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>
   </div>
 
+  <!-- NAVBAR -->
   <div class="navbar">
     <span class="logo">Educademy</span>
+
     <nav class="nav-links">
+      {% if session.get('username') %}
+        <span class="nav-link">Welcome, {{ session['username'] }}</span>
+        <a href="/profile" class="nav-link">Dashboard</a>
+        <a href="/logout" class="nav-link">Logout</a>
+      {% else %}
+        <span class="nav-link" onclick="openAuthModal()">Sign In</span>
+      {% endif %}
 
-  {% if session.get('username') %}
-      <!-- If logged in -->
-      <span class="nav-link">Welcome, {{ session['username'] }}</span>
-      <a href="/profile" class="nav-link">Dashboard</a>
-      <a href="/logout" class="nav-link">Logout</a>
-
-  {% else %}
-      <!-- If NOT logged in -->
-      <span class="nav-link" onclick="openAuthModal()">Sign In</span>
-  {% endif %}
-
-  <a href="#about" class="nav-link">About</a>
-  <a href="/contact" class="nav-link">Contact</a>
-  
-</nav>
-
-
+      <a href="#about" class="nav-link">About</a>
+      <a href="/contact" class="nav-link">Contact</a>
+    </nav>
   </div>
 
+  <!-- MAIN SECTION -->
   <div class="main-content">
     <div class="main-text">
       <h1 class="welcome-text">Welcome <br> to Educademy</h1>
-      <p class="subtitle">Your personalized path to smarter learning. We adapt to you, so you can achieve more.</p>
+      <p class="subtitle">Your personalized path to smarter learning.</p>
     </div>
+
     <div class="main-image-container">
-      <img src="https://images.unsplash.com/photo-1448932223592-d1fc686e76ea?w=1200&auto=format&fit=crop&q=60" alt="Person studying at a desk">
+      <img src="https://images.unsplash.com/photo-1448932223592-d1fc686e76ea?w=1200" alt="Study image">
     </div>
   </div>
 
+  <!-- FEATURES -->
   <div class="features-section">
     <h2>Explore Our Core Features</h2>
+
     <div class="features-grid">
 
-      <!-- Protected Links -->
-      <a href="/chatbot" class="feature-card">
-        <div class="feature-icon">
-          <svg ...></svg>
-        </div>
+      <a href="/chatbot" class="feature-card protected-link">
         <h3>Doubt-Solving Chatbot</h3>
-        <p>Get instant, 24/7 answers to your academic questions.</p>
+        <p>Instant 24/7 answers to academic questions.</p>
       </a>
 
-      <a href="/summary" class="feature-card">
-        <div class="feature-icon">
-          <svg ...></svg>
-        </div>
+      <a href="/summary" class="feature-card protected-link">
         <h3>Content Summarization</h3>
-        <p>Transform long texts into concise notes.</p>
+        <p>Turn long notes into easy summaries.</p>
       </a>
 
-      <a href="/profile" class="feature-card">
-        <div class="feature-icon">
-          <svg ...></svg>
-        </div>
+      <a href="/profile" class="feature-card protected-link">
         <h3>Student Progress</h3>
-        <p>Track your learning journey with analytics.</p>
+        <p>Track your learning analytics.</p>
       </a>
 
-      <a href="/mcq" class="feature-card">
-        <div class="feature-icon">
-          <svg ...></svg>
-        </div>
+      <a href="/mcq" class="feature-card protected-link">
         <h3>MCQ Generator</h3>
         <p>Create practice quizzes instantly.</p>
       </a>
     </div>
   </div>
 
+  <!-- ABOUT -->
   <div id="about" class="about-section">
     <h2>Who We Are</h2>
-    <p>We provide personalized education with AI assistance.</p>
+    <p>We provide personalized AI-powered learning experiences.</p>
   </div>
 
+  <!-- AUTH MODAL -->
   <div id="authModal" class="auth-modal">
 
     <!-- SIGN IN -->
     <div id="signInForm" class="auth-box">
       <span class="close-btn" onclick="closeAuthModal()">×</span>
       <h2>Sign In</h2>
+
       <form method="POST" action="/login">
         <label>Username</label>
         <input type="text" name="username" required>
@@ -188,11 +140,7 @@
         <label>Password</label>
         <input type="password" name="password" required>
 
-        <label>Role</label>
-        <select name="role" required>
-          <option value="user">Student</option>
-          <option value="admin">Admin</option>
-        </select>
+        <!-- Role REMOVED (backend checks automatically) -->
 
         <button type="submit" class="auth-btn">Sign In</button>
       </form>
@@ -204,6 +152,7 @@
     <div id="signUpForm" class="auth-box" style="display:none;">
       <span class="close-btn" onclick="closeAuthModal()">×</span>
       <h2>Sign Up</h2>
+
       <form method="POST" action="/register">
         <label>Full Name</label>
         <input type="text" name="username" required>
@@ -214,11 +163,7 @@
         <label>Confirm Password</label>
         <input type="password" name="confirm_password" required>
 
-        <label>Role</label>
-        <select name="role" required>
-          <option value="user">Student</option>
-          <option value="admin">Admin</option>
-        </select>
+        <!-- Role REMOVED (always creates student) -->
 
         <button type="submit" class="auth-btn">Sign Up</button>
       </form>
@@ -227,36 +172,20 @@
     </div>
   </div>
 
+  <!-- FOOTER -->
   <footer>
-    <div class="footer-grid">
-      <div>
-        <h4>Educademy</h4>
-        <p style="color:var(--muted); margin:8px 0 0">Empowering learners worldwide with interactive quizzes and comprehensive tracking.</p>
-      </div>
-      <div>
-        <h4>Quick Links</h4>
-        <a href="/">Dashboard</a><a href="#">Courses</a><a href="/mcq">Quizzes</a><a href="/profile">Progress</a>
-      </div>
-      <div>
-        <h4>Support</h4>
-        <a href="#">Help Center</a><a href="/contact">Contact Us</a><a href="#">Privacy Policy</a><a href="#">Terms of Service</a>
-      </div>
-      <div>
-        <h4>Connect</h4>
-        <a href="#">GitHub</a><a href="#">Twitter</a><a href="#">LinkedIn</a><a href="mailto:adarsh.kushwaha_cs23@gla.ac.in">Email</a>
-      </div>
-    </div>
-    <div class="copyright">&copy; 2025 Educademy. All rights reserved.</div>
+    <p>&copy; 2025 Educademy. All rights reserved.</p>
   </footer>
 
-  <script>
-    // --- Preloader fadeout ---
+  <!-- JS -->
+   <script>
+   
+    const IS_LOGGED_IN = "{{ 'true' if session.get('username') else 'false' }}" === "true";
+
     window.addEventListener("load", () => {
       const preloader = document.getElementById("preloader");
-      if (preloader) {
-        preloader.style.opacity = "0";
-        setTimeout(() => preloader.style.display = "none", 400);
-      }
+      preloader.style.opacity = "0";
+      setTimeout(() => preloader.style.display = "none", 400);
     });
 
     function openAuthModal() {
@@ -268,20 +197,29 @@
     }
 
     function toggleForms() {
-      const signIn = document.getElementById("signInForm");
-      const signUp = document.getElementById("signUpForm");
-      signIn.style.display = signIn.style.display === "none" ? "block" : "none";
-      signUp.style.display = signUp.style.display === "none" ? "block" : "none";
+      const s1 = document.getElementById("signInForm");
+      const s2 = document.getElementById("signUpForm");
+      s1.style.display = s1.style.display === "none" ? "block" : "none";
+      s2.style.display = s2.style.display === "none" ? "block" : "none";
     }
 
-    // Open login modal automatically when /home?login=required
-    window.addEventListener("DOMContentLoaded", function() {
+    // Auto-open login modal if backend sends ?login=required
+    window.addEventListener("DOMContentLoaded", () => {
       const params = new URLSearchParams(window.location.search);
-      if (params.get("login") === "required") {
-        openAuthModal();
-      }
+      if (params.get("login") === "required") openAuthModal();
+
+      document.querySelectorAll(".protected-link").forEach(link => {
+        link.addEventListener("click", (e) => {
+          if (!IS_LOGGED_IN) {
+            e.preventDefault();
+            openAuthModal();
+          }
+        });
+      });
     });
-  </script>
+</script>
+
+
 
 </body>
 </html>
