@@ -1,8 +1,8 @@
 flask
 flask-compress
+Flask-Session
 pymongo
 sentence-transformers
-torch
 langchain>=0.3.1
 langchain-community
 langchain-core
@@ -11,3 +11,4 @@ langchain-huggingface
 faiss-cpu
 python-docx
 PyPDF2
+flask_bcrypt

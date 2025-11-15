@@ -2,15 +2,46 @@ import logging, hashlib, torch
 from langchain_community.llms import Ollama
 from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain_community.vectorstores import FAISS
-from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain.chains import RetrievalQA
+try:
+    from langchain.text_splitter import RecursiveCharacterTextSplitter
+except Exception:
+    try:
+        from langchain_text_splitters import RecursiveCharacterTextSplitter
+    except Exception:
+        import logging as _lg
+        _lg.warning("rag_chatbot: langchain text splitter not available; using fallback splitter.")
+        class RecursiveCharacterTextSplitter:
+            def __init__(self, chunk_size=1000, chunk_overlap=100):
+                self.chunk_size = int(chunk_size)
+                self.chunk_overlap = int(chunk_overlap)
+
+            def split_text(self, text: str):
+                if not text or not text.strip():
+                    return []
+                text = text.strip()
+                if len(text) <= self.chunk_size:
+                    return [text]
+                chunks = []
+                start = 0
+                step = self.chunk_size - self.chunk_overlap
+                while start < len(text):
+                    end = start + self.chunk_size
+                    chunks.append(text[start:end])
+                    start += max(1, step)
+                return chunks
+try:
+    from langchain.chains import RetrievalQA
+except Exception:
+    RetrievalQA = None
 from langchain_core.prompts import PromptTemplate
 from . import config
 
 class RAGChatbot:
     def __init__(self):
         self.llm = Ollama(model=config.CHATBOT_MODEL_ID, temperature=0.2)
-        self.embedding = HuggingFaceEmbeddings(model_name=config.EMBEDDING_MODEL_ID, model_kwargs={'device':'cuda' if torch.cuda.is_available() else 'cpu'}, encode_kwargs={'normalize_embeddings':True})
+        device = getattr(config, 'DEVICE', 'cpu')
+        model_kwargs = {'device': device}
+        self.embedding = HuggingFaceEmbeddings(model_name=config.EMBEDDING_MODEL_ID, model_kwargs=model_kwargs, encode_kwargs={'normalize_embeddings':True})
         self.retriever = None; self.qa_chain = None; self._doc_hash = None; self._cache = {}
     def _prompt(self):
         return PromptTemplate(template="Context: {context}\nQuestion: {question}\nAnswer:", input_variables=["context","question"])
@@ -27,7 +58,29 @@ class RAGChatbot:
             self.retriever = vs.as_retriever(search_kwargs={"k":config.TOP_K_RETRIEVED_CHUNKS}); self._doc_hash = h
         except Exception:
             logging.exception("faiss")
-        self.qa_chain = RetrievalQA.from_chain_type(llm=self.llm, chain_type="stuff", retriever=self.retriever, chain_type_kwargs={"prompt":self._prompt()}, return_source_documents=False)
+        if RetrievalQA is not None:
+            self.qa_chain = RetrievalQA.from_chain_type(llm=self.llm, chain_type="stuff", retriever=self.retriever, chain_type_kwargs={"prompt":self._prompt()}, return_source_documents=False)
+        else:
+            class _FallbackRetrievalQA:
+                def __init__(self, llm, retriever, prompt_template):
+                    self.llm = llm
+                    self.retriever = retriever
+                    self.prompt_template = prompt_template
+
+                def invoke(self, data: dict):
+                    question = data.get("query", "")
+                    docs = self.retriever.get_relevant_documents(question)
+                    context = "\n\n".join([d.page_content for d in docs[:3]])
+                    try:
+                        prompt_text = self.prompt_template.format(context=context, question=question)
+                    except Exception:
+                        prompt_text = f"Context: {context}\nQuestion: {question}\nAnswer:"
+                    res = self.llm.invoke(prompt_text)
+                    if isinstance(res, dict):
+                        return {"result": res.get("text", "") or res.get("result", "") or str(res)}
+                    return {"result": str(res)}
+
+            self.qa_chain = _FallbackRetrievalQA(self.llm, self.retriever, self._prompt())
 
     def answer_query(self, query, use_document=True):
         try:

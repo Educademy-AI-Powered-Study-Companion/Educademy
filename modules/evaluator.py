@@ -4,7 +4,7 @@ from sentence_transformers import SentenceTransformer, util
 from . import config
 _embedding = None
 try:
-    device = 'cuda' if torch.cuda.is_available() else 'cpu'
+    device = getattr(config, 'DEVICE', None) or ('cuda' if torch.cuda.is_available() else 'cpu')
     _embedding = SentenceTransformer(config.EMBEDDING_MODEL_ID, device=device); _embedding.eval()
     logging.info("Embedding loaded")
 except Exception:
