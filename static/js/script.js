@@ -2,7 +2,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
     const authModal = document.getElementById('authModal');
     if (authModal) {
-
         const preloader = document.getElementById("preloader");
         if(preloader) {
             window.addEventListener("load", () => {
@@ -29,7 +28,6 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         };
     }
-
 
     const summaryForm = document.getElementById('summaryForm');
     if (summaryForm) {
@@ -80,6 +78,7 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
+
     const chatForm = document.getElementById('chatForm');
     if (chatForm) {
         const userInput = document.getElementById('userInput');
@@ -173,7 +172,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 const controller = new AbortController();
                 const timeoutId = setTimeout(() => controller.abort(), 120000);
                 
-                const res = await fetch("/summarize", { 
+                const res = await fetch("/generate_quiz", { 
                     method: "POST", 
                     body: formData,
                     signal: controller.signal
@@ -243,7 +242,6 @@ document.addEventListener('DOMContentLoaded', function() {
             scoreDiv.scrollIntoView({ behavior: 'smooth' });
         }
     }
-
 
     const avatarImg = document.getElementById('avatarImg');
     if (avatarImg) {
