@@ -1,73 +1,136 @@
 import logging
-import json
-from typing import List, Dict, Any
-from langchain_community.llms import Ollama
-from langchain_core.prompts import PromptTemplate
-from langchain_core.output_parsers import JsonOutputParser
-from . import config
+import re
 import hashlib
-from functools import lru_cache
+import json
+import requests
+from typing import List, Dict, Any
+from . import config
 
-_parser = JsonOutputParser()
-_prompt_template = None
-_llm_instance = None
+logger = logging.getLogger(__name__)
 
-def _get_llm():
-    """Get or create a shared LLM instance."""
-    global _llm_instance
-    if _llm_instance is None:
-        _llm_instance = Ollama(model=config.PROCESSING_MODEL_ID, temperature=0.5)
-    return _llm_instance
+OLLAMA_URL = "http://localhost:11434/api/generate"
 
-def _get_prompt():
-    """Get or create a shared prompt template."""
-    global _prompt_template
-    if _prompt_template is None:
-        prompt_template = """
-        You are an expert educator creating a quiz. Based on the following document, generate exactly {num_questions} multiple-choice questions to test comprehension.
+def _generate_raw_text_direct(full_text: str, num_questions: int) -> str:
+    """
+    Connects directly to Ollama without LangChain.
+    """
+    prompt = f"""
+    You are a quiz generator. Create exactly {num_questions} multiple-choice questions based on the text below.
 
-        **CRITICAL INSTRUCTIONS:**
-        - Your output MUST be a single, valid JSON object.
-        - The JSON object must have a single key called "questions", which is a list of question objects.
-        - Each object in the list must have exactly three keys:
-          1. "question": A string containing the question text.
-          2. "options": A list of exactly 4 strings (3 incorrect, 1 correct).
-          3. "answer": A string that is an exact copy of the correct option.
-        - Do not add any text or explanations before or after the JSON object.
+    RULES:
+    1. Use this EXACT format for every question.
+    2. Separate questions with "###".
+    3. Do NOT use Markdown (no bold, no italics).
+    4. The 'Answer' line must contain the exact text of the correct option.
 
-        DOCUMENT:
-        "{document}"
+    FORMAT EXAMPLE:
+    ###
+    Q: What is the capital of France?
+    A) London
+    B) Paris
+    C) Berlin
+    D) Madrid
+    Answer: Paris
+    ###
 
-        {format_instructions}
-        """
-        _prompt_template = PromptTemplate(
-            template=prompt_template,
-            input_variables=["document", "num_questions"],
-            partial_variables={"format_instructions": _parser.get_format_instructions()}
-        )
-    return _prompt_template
+    TEXT TO QUIZ:
+    "{full_text[:3500]}"  
+    """
 
-@lru_cache(maxsize=50)
-def _get_cached_mcqs(text_hash: str, full_text: str, num_questions: int) -> List[Dict[str, Any]]:
-    """Cache MCQs based on text hash and number of questions."""
-    logging.info(f"Generating {num_questions} meaningful MCQs with Ollama.")
+    model_to_use = getattr(config, 'CHATBOT_MODEL_ID', 'llama3.2')
+    
+    payload = {
+        "model": model_to_use,
+        "prompt": prompt,
+        "stream": False,
+        "options": {
+            "temperature": 0.1,
+            "num_ctx": 4096
+        }
+    }
+
+    logger.info(f"Sending request to Ollama ({model_to_use})...")
+    print(f"--- DEBUG: Contacting Ollama at {OLLAMA_URL} with model {model_to_use} ---")
+
     try:
-        PROMPT = _get_prompt()
-        llm = _get_llm()
-        chain = PROMPT | llm | _parser
+        response = requests.post(OLLAMA_URL, json=payload, timeout=120)
         
-        result = chain.invoke({"document": full_text, "num_questions": num_questions})
-        mcq_list = result.get("questions", [])
-        logging.info(f"Successfully generated {len(mcq_list)} MCQs.")
-        return mcq_list
-    except Exception as e:
-        logging.error(f"Error during meaningful MCQ generation: {e}", exc_info=True)
-        return []
+        if response.status_code == 200:
+            response_json = response.json()
+            raw_response = response_json.get("response", "")
+            print("--- DEBUG: Received response from Ollama ---")
+            return raw_response
+        else:
+            logger.error(f"Ollama API Error: {response.status_code} - {response.text}")
+            print(f"--- ERROR: Ollama API returned status {response.status_code} ---")
+            return ""
+            
+    except requests.exceptions.RequestException as e:
+        logger.error(f"Failed to connect to Ollama: {e}")
+        print(f"--- DEBUG ERROR: Could not connect to Ollama. Is it running? {e} ---")
+        return ""
+
+def _scavenge_mcqs_from_text(raw_text: str) -> List[Dict[str, Any]]:
+    """
+    Parses the text looking for Q/A patterns regardless of formatting.
+    """
+    mcqs = []
+    clean_text = re.sub(r'\*\*|\*', '', raw_text)
+    blocks = re.split(r'###|\n\s*\n', clean_text)
+    
+    for block in blocks:
+        if not block.strip(): continue
+            
+        lines = [l.strip() for l in block.split('\n') if l.strip()]
+        question, options, answer = "", [], ""
+        
+        for line in lines:
+            if re.match(r'^(Q:|Question:|\d+[\.:])', line, re.IGNORECASE) or line.endswith('?'):
+                question = re.sub(r'^(Q:|Question:|\d+[\.:])\s*', '', line, flags=re.IGNORECASE).strip()
+            elif re.match(r'^([A-D1-4][\)\.]|-)\s+', line):
+                options.append(re.sub(r'^([A-D1-4][\)\.]|-)\s+', '', line).strip())
+            elif line.lower().startswith("answer:"):
+                answer = line.split(":", 1)[1].strip()
+
+        if question and len(options) >= 2:
+            while len(options) < 4: options.append("None of the above")
+            
+            final_answer = answer
+            if len(answer) == 1 and answer.upper() in "ABCD":
+                idx = "ABCD".index(answer.upper())
+                if idx < len(options): final_answer = options[idx]
+            
+            if final_answer not in options:
+                matches = [o for o in options if final_answer in o or o in final_answer]
+                final_answer = matches[0] if matches else options[0]
+
+            mcqs.append({"question": question, "options": options[:4], "answer": final_answer})
+
+    return mcqs
 
 def generate_meaningful_mcqs(full_text: str, num_questions: int) -> List[Dict[str, Any]]:
-    """Generate MCQs with caching."""
-    if not full_text.strip():
+    """
+    Main function called by app.py
+    """
+    if not full_text or not full_text.strip():
         return []
     
-    text_hash = hashlib.md5(f"{full_text}_{num_questions}".encode()).hexdigest()
-    return _get_cached_mcqs(text_hash, full_text, num_questions)
+    raw_text = _generate_raw_text_direct(full_text, num_questions)
+    
+    if not raw_text:
+        return [{
+            "question": "System Error: Could not connect to Ollama.",
+            "options": ["Is Ollama running?", "Is the model correct in config?", "Check Terminal", "Retry"],
+            "answer": "Is Ollama running?"
+        }]
+
+    mcqs = _scavenge_mcqs_from_text(raw_text)
+    
+    if not mcqs:
+        return [{
+            "question": "Error: The AI generated text but we couldn't find any questions.",
+            "options": ["Try simpler text", "Check formatting", "Retry", "Ignore"],
+            "answer": "Retry"
+        }]
+        
+    return mcqs
