@@ -6,53 +6,9 @@
   <title>Educademy</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='css/StudentHome.css') }}">
 
-  <style>
-    #authModal {
-      position: fixed;
-      top: 0; left: 0;
-      width: 100%; height: 100%;
-      background: rgba(0,0,0,0.4);
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      opacity: 0;
-      visibility: hidden;
-      transition: all 0.3s ease;
-      z-index: 1000;
-    }
 
-    #authModal.active {
-      opacity: 1;
-      visibility: visible;
-    }
-
-    .auth-box {
-      background: #fff;
-      padding: 30px 40px;
-      border-radius: 12px;
-      width: 320px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-      text-align: center;
-      position: relative;
-      animation: fadeIn 0.3s ease;
-    }
-
-    .auth-box h2 { color: #2563eb; margin-bottom: 20px; }
-    .auth-box label { display: block; text-align: left; margin-top: 10px; }
-    .auth-box input { width: 100%; padding: 8px; border-radius: 8px; border: 1px solid #ccc; }
-
-    .auth-btn {
-      width: 100%; padding: 10px; margin-top: 18px;
-      background: #2563eb; color: #fff; border: none;
-      border-radius: 8px; cursor: pointer; font-weight: 600;
-    }
-
-    .close-btn {
-      position: absolute; right: 20px; top: 15px;
-      font-size: 24px; cursor: pointer;
-    }
-  </style>
 </head>
+
 
 <body>
   <!-- Preloader -->
@@ -81,15 +37,22 @@
 
   <!-- MAIN SECTION -->
   <div class="main-content">
-    <div class="main-text">
-      <h1 class="welcome-text">Welcome <br> to Educademy</h1>
-      <p class="subtitle">Your personalized path to smarter learning.</p>
-    </div>
-
-    <div class="main-image-container">
-      <img src="https://images.unsplash.com/photo-1448932223592-d1fc686e76ea?w=1200" alt="Study image">
-    </div>
+  <div class="lines">
+    <div class="line"></div>
+    <div class="line"></div>
+    <div class="line"></div>
   </div>
+
+  <div class="main-text">
+    <h1 class="welcome-text">Welcome <br> to Educademy</h1>
+    <p class="subtitle">Your personalized path to smarter learning.</p>
+  </div>
+
+  <div class="main-image-container">
+    <img src="https://images.unsplash.com/photo-1448932223592-d1fc686e76ea?w=1200" alt="Study image">
+  </div>
+</div>
+
 
   <!-- FEATURES -->
   <div class="features-section">
