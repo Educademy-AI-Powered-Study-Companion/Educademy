@@ -21,18 +21,24 @@
   <div class="navbar">
     <span class="logo">Educademy</span>
 
-    <nav class="nav-links">
-      {% if session.get('username') %}
-        <span class="nav-link">Welcome, {{ session['username'] }}</span>
-        <a href="/profile" class="nav-link">Dashboard</a>
-        <a href="/logout" class="nav-link">Logout</a>
-      {% else %}
-        <span class="nav-link" onclick="openAuthModal()">Sign In</span>
-      {% endif %}
+<nav class="nav-links">
+  {% if session.get('username') %}
+    <span class="nav-link">Welcome, {{ session['username'] }}</span>
 
-      <a href="#about" class="nav-link">About</a>
-      <a href="/contact" class="nav-link">Contact</a>
-    </nav>
+    {% if session.get('role') == 'admin' %}
+      <a href="/admin-dashboard" class="nav-link">Dashboard</a>
+    {% else %}
+      <a href="/profile" class="nav-link">Dashboard</a>
+    {% endif %}
+
+    <a href="/logout" class="nav-link">Logout</a>
+  {% else %}
+    <span class="nav-link" onclick="openAuthModal()">Sign In</span>
+  {% endif %}
+  <a href="#about" class="nav-link">About</a>
+  <a href="/contact" class="nav-link">Contact</a>
+</nav>
+
   </div>
 
   <!-- MAIN SECTION -->

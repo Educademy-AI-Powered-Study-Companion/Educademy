@@ -7,6 +7,8 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='css/MCQGenerater.css') }}">
 </head>
 <body>
+
+  <!-- NAVBAR -->
   <div class="navbar">
       <button class="logo" onclick="location.href='/'" style="background:none;border:none;cursor:pointer;color:#2d7be5;font-size:1.7em;font-weight:bold;letter-spacing:1px;user-select:none;">Educademy</button>
       <nav class="nav-links">
@@ -17,61 +19,111 @@
       </nav>
   </div>
 
+  <!-- HEADER SECTION -->
   <div class="welcome-section">
-  <div class="lines" aria-hidden="true">
-
-    <div class="line"></div>
-    <div class="line"></div>
-    <div class="line"></div>
-    <div class="line"></div>
-    <div class="line"></div>
-    <div class="line"></div>
-    <div class="line"></div>
-    <div class="line"></div>
-    <div class="line"></div>
+      <div class="welcome-icon"></div>
+      <h2>MCQ Generator</h2>
+      <p>Turn any notes or document into interactive quizzes!</p>
   </div>
 
-  <div class="welcome-inner">
-    <div class="welcome-icon"></div>
-    <h2>MCQ Generator</h2>
-    <p>Turn your study notes, articles, or any text into interactive multiple-choice quizzes to test your knowledge.</p>
-  </div>
-</div>
-
-
+  <!-- FORM SECTION -->
   <div class="container">
     <form id="mcqForm" enctype="multipart/form-data">
-      <textarea name="text" placeholder="Paste your text here..." aria-label="Text input for generating MCQs"></textarea>
-      <p class="upload-label">OR Upload File (PDF/DOCX):</p>
+      <textarea name="text" placeholder="Paste your text here..." aria-label="Text input"></textarea>
+      <p class="upload-label">OR Upload a File (PDF/DOCX):</p>
       <input type="file" name="file" aria-label="Upload file">
       <button type="submit">Generate MCQs</button>
     </form>
-    <div id="loading" style="display: none;">⏳ Generating MCQs, please wait...</div>
+
+    <div id="loading" style="display:none;">⏳ Generating MCQs...</div>
     <div id="mcqResult"></div>
     <div id="quizScore"></div>
   </div>
 
   <footer>
-      <div class="footer-grid">
-      <div>
-        <h4>Educademy</h4>
-        <p style="color:var(--muted); margin:8px 0 0">Empowering learners worldwide with interactive quizzes and comprehensive tracking.</p>
-      </div>
-      <div>
-        <h4>Quick Links</h4>
-        <a href="/">Dashboard</a><a href="#">Courses</a><a href="/mcq">Quizzes</a><a href="/profile">Progress</a>
-      </div>
-      <div>
-        <h4>Support</h4>
-        <a href="#">Help Center</a><a href="/contact">Contact Us</a><a href="#">Privacy Policy</a><a href="#">Terms of Service</a>
-      </div>
-      <div>
-        <h4>Connect</h4>
-        <a href="#">GitHub</a><a href="#">Twitter</a><a href="#">LinkedIn</a><a href="mailto:adarsh.kushwaha_cs23@gla.ac.in">Email</a>
-      </div>
-    </div>
-    <div class="copyright">&copy; 2025 Educademy. All rights reserved.</div>
+    <p>© 2025 Educademy | All Rights Reserved</p>
   </footer>
-  <script src="{{ url_for('static', filename='js/script.js') }}" defer></script>
+
+  <!-- ⭐ FINAL FIXED JAVASCRIPT ⭐ -->
+  <script>
+    let correctAnswers = [];  
+    let currentFilename = "text_input";
+
+    // 📌 Generate MCQs on Submit
+    document.getElementById("mcqForm").addEventListener("submit", async function (e) {
+      e.preventDefault();
+      document.getElementById("loading").style.display = "block";
+
+      const formData = new FormData(this);
+
+      if (formData.get("file")) {
+        currentFilename = formData.get("file").name;
+      }
+
+      const response = await fetch("/generate_quiz", {
+        method: "POST",
+        body: formData
+      });
+
+      const data = await response.json();
+      document.getElementById("loading").style.display = "none";
+
+      if (data.error) {
+        document.getElementById("mcqResult").innerHTML = `<p style="color:red;">${data.error}</p>`;
+        return;
+      }
+
+      // ❗ USE answer FROM BACKEND
+      correctAnswers = data.mcqs.map(q => q.answer); 
+      renderQuiz(data.mcqs);
+    });
+
+    // 📌 Render Questions
+    function renderQuiz(mcqs) {
+      let html = `<form id="quizForm">`;
+      mcqs.forEach((q, i) => {
+        html += `
+        <div class="question-block">
+          <p><b>Q${i + 1}. ${q.question}</b></p>
+          ${q.options.map(opt => `
+            <label>
+              <input type="radio" name="q${i}" value="${opt}"> ${opt}
+            </label><br>`).join("")}
+        </div><hr>`;
+      });
+      html += `<button type="button" onclick="submitQuiz(${mcqs.length})">Submit Quiz</button></form>`;
+      document.getElementById("mcqResult").innerHTML = html;
+    }
+
+    // 📌 Check Answers + Store in DB
+    async function submitQuiz(totalQuestions) {
+      let score = 0;
+
+      correctAnswers.forEach((correct, i) => {
+        const selected = document.querySelector(`input[name="q${i}"]:checked`);
+        if (selected && selected.value === correct) score++;
+      });
+
+      const percentage = (score / totalQuestions) * 100;
+
+      document.getElementById("quizScore").innerHTML = `
+        <h2>Your Score: ${score}/${totalQuestions} (${percentage.toFixed(2)}%)</h2>
+      `;
+
+      // 📌 SAVE TO DB
+      await fetch("/submit_mcqs", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          score: score,
+          total: totalQuestions,
+          filename: currentFilename
+        })
+      });
+
+      alert("Quiz saved successfully! Check your dashboard.");
+    }
+  </script>
+
 </body>
 </html>

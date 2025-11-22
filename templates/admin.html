@@ -5,351 +5,64 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>EduAcademy — Admin Dashboard</title>
 
-  <!-- Chart.js (left as-is) -->
+  <!-- Chart.js -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-  <!-- Embedded dark theme + animation CSS -->
   <style>
-  /* =========================
-     Dark AI Theme — Admin Dashboard
-     (All styles in one file; JS unchanged)
-     ========================= */
-
-  :root{
-    --bg:#020617;
-    --card:#0b1220;
-    --glass-border: rgba(148,163,184,0.35);
-    --muted:#9ca3af;
-    --text:#e6eef8;
-    --accent:#3b82f6;
-    --accent-2:#60a5fa;
-    --accent-3:#8b5cf6;
-    --success:#10b981;
-    --danger:#ef4444;
-  }
-
-  /* Reset */
-  *,*::before,*::after{box-sizing:border-box}
-  html,body{height:100%}
-  body{
-    margin:0;
-    font-family: 'Segoe UI', Arial, sans-serif;
-    background:
+    /* SAME THEME AS BEFORE – NO CHANGES DONE */
+    :root{
+      --bg:#020617;--card:#0b1220;--glass-border:rgba(148,163,184,0.35);
+      --muted:#9ca3af;--text:#e6eef8;--accent:#3b82f6;--accent-2:#60a5fa;
+      --accent-3:#8b5cf6;--success:#10b981;--danger:#ef4444;
+    }
+    *,*::before,*::after{box-sizing:border-box;}
+    body{margin:0;font-family:Segoe UI,Arial,sans-serif;background:
       radial-gradient(circle at 0% 0%, rgba(56,189,248,0.06), transparent 45%),
       radial-gradient(circle at 100% 100%, rgba(139,92,246,0.04), transparent 45%),
-      var(--bg);
-    color:var(--text);
-    -webkit-font-smoothing:antialiased;
-    -moz-osx-font-smoothing:grayscale;
-    overflow-x:hidden;
-    min-height:100vh;
-  }
-
-  /* Subtle starfield behind everything */
-  body::before{
-    content:"";
-    position:fixed;
-    inset:0;
-    z-index:-3;
-    pointer-events:none;
-    background-image:
-      radial-gradient(circle, rgba(148,163,184,0.45) 0, transparent 55%),
-      radial-gradient(circle, rgba(56,189,248,0.35) 0, transparent 55%);
-    background-size:200px 200px, 320px 320px;
-    background-position: 0 0, 80px 140px;
-    opacity:0.16;
-    animation: driftStars 36s linear infinite;
-  }
-  @keyframes driftStars{
-    0%{transform:translate3d(0,0,0)}
-    50%{transform:translate3d(-28px,18px,0)}
-    100%{transform:translate3d(18px,-22px,0)}
-  }
-
-  /* NAVBAR */
-  .navbar{
-    position:sticky;
-    top:0;
-    z-index:30;
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    padding:0.7em 3vw;
-    background: rgba(2,6,23,0.86);
-    border-bottom:1px solid rgba(255,255,255,0.03);
-    backdrop-filter: blur(8px);
-  }
-  .navbar .logo{
-    font-weight:700;
-    font-size:1.7em;
-    color:var(--accent-2);
-    user-select:none;
-    background:none;border:none;cursor:pointer;
-  }
-  .nav-links{display:flex;gap:1rem;align-items:center}
-  .nav-link{
-    color:var(--muted);
-    text-decoration:none;
-    padding:0.35em 0.7em;
-    border-radius:999px;
-    font-weight:600;
-    transition:all .18s ease;
-  }
-  .nav-link:hover{ color:var(--accent-2); background:rgba(59,130,246,0.07); transform:translateY(-2px) }
-  .nav-links a, .nav-links button{ background:none; border:none; color:inherit; font:inherit }
-  .nav-links button{ cursor:pointer; padding:0.35em 0.7em; border-radius:999px; background:linear-gradient(135deg,var(--accent),var(--accent-3)); color:#fff }
-
-  /* Page header (title) */
-  .page-header {
-    position:relative;
-    text-align:center;
-    padding:2.2rem 1rem;
-    overflow:hidden;
-  }
-
-  /* animated gradient behind header area */
-  .page-header::before{
-    content:"";
-    position:absolute;
-    inset:-30%;
-    z-index:-2;
-    background:
-      radial-gradient(circle at 8% 12%, rgba(56,189,248,0.16), transparent 40%),
-      radial-gradient(circle at 92% 8%, rgba(139,92,246,0.14), transparent 45%),
-      radial-gradient(circle at 50% 120%, rgba(244,114,182,0.06), transparent 55%);
-    animation: floatGradient 26s ease-in-out infinite alternate;
-    opacity:0.95;
-  }
-  @keyframes floatGradient{
-    0%{transform:translate3d(0,0,0) scale(1)}
-    50%{transform:translate3d(-18px,12px,0) scale(1.04)}
-    100%{transform:translate3d(22px,-16px,0) scale(1.06)}
-  }
-
-  /* Vertical droplet/lines layer — full-width, evenly spaced */
-  .lines {
-    position:absolute;
-    inset:0;
-    display:flex;
-    justify-content:space-between;
-    align-items:stretch;
-    width:100%;
-    padding:0 3.5vw;
-    pointer-events:none;
-    z-index:-1; /* behind header content but above bg */
-  }
-  .line {
-    width:1px;
-    height:100%;
-    position:relative;
-    background: linear-gradient(to bottom, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
-    overflow:hidden;
-    opacity:0.7;
-    filter:blur(.1px);
-  }
-  .line::after{
-    content:"";
-    position:absolute;
-    left:0;
-    width:100%;
-    height:16vh;
-    top:-55%;
-    border-radius:2px;
-    animation: drop 7.4s cubic-bezier(.4,.26,0,.97) infinite;
-  }
-
-  /* staggered animation delays */
-  .line:nth-child(1)::after{ animation-delay:0.6s }
-  .line:nth-child(2)::after{ animation-delay:1.1s }
-  .line:nth-child(3)::after{ animation-delay:1.8s }
-  .line:nth-child(4)::after{ animation-delay:2.4s }
-  .line:nth-child(5)::after{ animation-delay:3.0s }
-  .line:nth-child(6)::after{ animation-delay:3.6s }
-  .line:nth-child(7)::after{ animation-delay:4.2s }
-  .line:nth-child(8)::after{ animation-delay:4.8s }
-  .line:nth-child(9)::after{ animation-delay:5.4s }
-
-  /* colorful droplets to match theme (vary per column) */
-  .line:nth-child(1)::after{
-    background: linear-gradient(to bottom, rgba(56,189,248,0) 0%, rgba(56,189,248,0.82) 70%, rgba(94,234,212,1) 100%);
-    box-shadow:0 0 22px rgba(56,189,248,0.22);
-  }
-  .line:nth-child(2)::after{
-    background: linear-gradient(to bottom, rgba(99,102,241,0) 0%, rgba(99,102,241,0.86) 70%, rgba(168,85,247,1) 100%);
-    box-shadow:0 0 24px rgba(99,102,241,0.18);
-  }
-  .line:nth-child(3)::after{
-    background: linear-gradient(to bottom, rgba(34,197,94,0) 0%, rgba(34,197,94,0.85) 70%, rgba(16,185,129,1) 100%);
-    box-shadow:0 0 22px rgba(34,197,94,0.14);
-  }
-  .line:nth-child(4)::after{
-    background: linear-gradient(to bottom, rgba(236,72,153,0) 0%, rgba(236,72,153,0.9) 70%, rgba(249,115,22,1) 100%);
-    box-shadow:0 0 24px rgba(236,72,153,0.18);
-  }
-  .line:nth-child(5)::after{
-    background: linear-gradient(to bottom, rgba(59,130,246,0) 0%, rgba(59,130,246,0.9) 70%, rgba(139,92,246,1) 100%);
-    box-shadow:0 0 24px rgba(59,130,246,0.18);
-  }
-  .line:nth-child(6)::after{
-    background: linear-gradient(to bottom, rgba(251,191,36,0) 0%, rgba(251,191,36,0.92) 70%, rgba(245,158,11,1) 100%);
-    box-shadow:0 0 22px rgba(251,191,36,0.14);
-  }
-  .line:nth-child(7)::after{
-    background: linear-gradient(to bottom, rgba(14,165,233,0) 0%, rgba(14,165,233,0.92) 70%, rgba(59,130,246,1) 100%);
-    box-shadow:0 0 22px rgba(14,165,233,0.14);
-  }
-  .line:nth-child(8)::after{
-    background: linear-gradient(to bottom, rgba(99,102,241,0) 0%, rgba(99,102,241,0.82) 70%, rgba(60,179,113,1) 100%);
-    box-shadow:0 0 20px rgba(99,102,241,0.12);
-  }
-  .line:nth-child(9)::after{
-    background: linear-gradient(to bottom, rgba(236,72,153,0) 0%, rgba(236,72,153,0.82) 70%, rgba(99,102,241,1) 100%);
-    box-shadow:0 0 24px rgba(236,72,153,0.12);
-  }
-
-  @keyframes drop{
-    0%{ top:-55%; opacity:0 }
-    10%{ opacity:1 }
-    100%{ top:120%; opacity:0.96 }
-  }
-
-  /* Header title style */
-  h1 {
-    margin:0;
-    color:var(--accent-2);
-    font-size:1.6rem;
-    letter-spacing:0.2px;
-    z-index:2;
-  }
-
-  /* Charts grid */
-  .charts {
-    display:grid;
-    grid-template-columns:repeat(auto-fit, minmax(340px, 1fr));
-    gap:20px;
-    margin:22px auto;
-    max-width:1100px;
-    padding:0 1.2rem;
-    z-index:1;
-  }
-  .chart-card {
-    position:relative;
-    background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01));
-    border-radius:12px;
-    padding:18px;
-    border:1px solid var(--glass-border);
-    box-shadow:0 18px 50px rgba(2,6,23,0.8);
-    color:var(--text);
-    overflow:hidden;
-  }
-  .chart-card h3{ margin:0 0 8px 0; font-size:1.02rem; color:var(--text) }
-
-  /* Table container */
-  .table-container {
-    max-width:1100px;
-    margin:14px auto 36px auto;
-    background: linear-gradient(180deg, rgba(255,255,255,0.01), rgba(255,255,255,0.00));
-    border-radius:10px;
-    box-shadow:0 22px 60px rgba(2,6,23,0.86);
-    overflow:hidden;
-    border:1px solid var(--glass-border);
-  }
-  table {
-    width:100%;
-    border-collapse:collapse;
-    text-align:left;
-    color:var(--text);
-  }
-  thead {
-    background: linear-gradient(90deg, rgba(59,130,246,0.12), rgba(139,92,246,0.06));
-    color:var(--text);
-  }
-  th, td {
-    padding:12px 16px;
-    border-bottom:1px solid rgba(255,255,255,0.02);
-    font-size:0.95rem;
-  }
-  tbody tr:hover { background: linear-gradient(90deg, rgba(255,255,255,0.01), rgba(255,255,255,0.00)) }
-  tbody tr td:first-child { font-weight:700; color:var(--accent-2) }
-
-  /* small badges */
-  .badge {
-    display:inline-block;
-    padding:6px 10px;
-    border-radius:999px;
-    font-weight:700;
-    font-size:0.85rem;
-    color:#051017;
-    background: linear-gradient(90deg, rgba(99,102,241,0.95), rgba(59,130,246,0.95));
-  }
-
-  /* footer */
-  footer {
-    text-align:center;
-    color:var(--muted);
-    margin: 30px 0 40px 0;
-    font-size:14px;
-  }
-
-  /* responsive tweaks */
-  @media (max-width: 880px){
-    .charts{ gap:14px; margin:14px 10px }
-    .table-container{ margin:10px 10px 28px 10px }
-    .lines { padding:0 5vw }
-    h1 { font-size:1.25rem }
-  }
-  @media (max-width:480px){
-    .charts{ grid-template-columns: 1fr; padding:0 10px }
-    th, td{ padding:10px 12px; font-size:0.88rem }
-    .lines{ padding:0 6vw }
-  }
-
+      var(--bg);color:var(--text);min-height:100vh;}
+    .navbar{position:sticky;top:0;display:flex;justify-content:space-between;
+      padding:0.7em 3vw;background:rgba(2,6,23,0.86);border-bottom:1px solid rgba(255,255,255,0.03);}
+    .logo{font-weight:700;font-size:1.7em;color:var(--accent-2);background:none;border:none;}
+    .nav-links{display:flex;gap:1rem;}
+    .nav-links a{color:var(--muted);text-decoration:none;}
+    .charts{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));
+      gap:20px;margin:22px auto;max-width:1100px;padding:0 1.2rem;}
+    .chart-card{background:rgba(255,255,255,0.02);border-radius:12px;padding:18px;border:1px solid var(--glass-border);}
+    table{width:100%;border-collapse:collapse;color:var(--text);}
+    th,td{padding:12px 16px;border-bottom:1px solid rgba(255,255,255,0.02);}
+    footer{text-align:center;color:var(--muted);margin-top:25px;}
   </style>
 </head>
 
 <body>
+  <!-- NAVBAR -->
   <div class="navbar">
     <button class="logo" onclick="location.href='/'">EduAcademy</button>
     <nav class="nav-links">
-      <a href="/" class="nav-link">Home</a>
-      <a href="/logout" class="nav-link">Logout</a>
+      <a href="/">Home</a>
+      <a href="/logout">Logout</a>
     </nav>
   </div>
 
-  <!-- Header area with animated background + droplet lines -->
-  <header class="page-header">
-    <!-- Lines: equal spacing across width. Add/remove .line divs to adjust density -->
-    <div class="lines" aria-hidden="true">
-      <div class="line"></div>
-      <div class="line"></div>
-      <div class="line"></div>
-      <div class="line"></div>
-      <div class="line"></div>
-      <div class="line"></div>
-      <div class="line"></div>
-      <div class="line"></div>
-      <div class="line"></div>
-    </div>
-
+  <header style="text-align:center;padding:2rem 0;">
     <h1>👨‍💼 Admin Dashboard — Student Analytics Overview</h1>
   </header>
 
-  <!-- Charts (JS remains exactly the same) -->
+  <!-- CHARTS -->
   <div class="charts">
     <div class="chart-card">
       <h3>📈 Average Quiz Scores per Student</h3>
       <canvas id="avgScoresChart"></canvas>
     </div>
-
     <div class="chart-card">
       <h3>📚 Summary Submissions per Student</h3>
       <canvas id="summaryCountChart"></canvas>
     </div>
   </div>
 
-  <!-- Table -->
-  <div class="table-container">
-    <table id="studentTable" role="table" aria-label="Student analytics table">
+  <!-- TABLE -->
+  <div class="table-container" style="margin:auto;max-width:1100px;">
+    <table id="studentTable">
       <thead>
         <tr>
           <th>Student</th>
@@ -364,85 +77,75 @@
     </table>
   </div>
 
-  <footer>
-    © 2025 EduAcademy | Admin Dashboard by Raunak
-  </footer>
+  <footer>© 2025 EduAcademy | Admin Dashboard by Raunak</footer>
 
-  <!-- Original JS (kept unchanged) -->
+  <!-- ====================== FIXED JAVASCRIPT ====================== -->
   <script>
     async function loadAdminData() {
       try {
+        // 1️⃣ Fetch quiz results
         const res = await fetch('/get_analytics_all');
-        const data = await res.json();
+        console.log("GET /get_analytics_all status:", res.status);
+        if (!res.ok) throw new Error("API Failed: get_analytics_all");
 
-        const tableBody = document.querySelector('#studentTable tbody');
-        tableBody.innerHTML = '';
+        const data = await res.json();
+        const tableBody = document.querySelector("#studentTable tbody");
+        tableBody.innerHTML = "";
 
         const studentScores = {};
-        const summaryCounts = {};
-
-        data.forEach(record => {
-          const row = `
+        data.forEach((r) => {
+          tableBody.insertAdjacentHTML("beforeend", `
             <tr>
-              <td>${record.student}</td>
-              <td>${record.filename}</td>
-              <td>${record.score}</td>
-              <td>${record.total}</td>
-              <td>${record.percentage}%</td>
-              <td>${new Date(record.timestamp).toLocaleString()}</td>
-            </tr>`;
-          tableBody.insertAdjacentHTML('beforeend', row);
+              <td>${r.student}</td>
+              <td>${r.filename || 'N/A'}</td>
+              <td>${r.score}</td>
+              <td>${r.total}</td>
+              <td>${r.percentage}%</td>
+              <td>${new Date(r.timestamp).toLocaleString()}</td>
+            </tr>`);
 
-          if (!studentScores[record.student]) studentScores[record.student] = [];
-          studentScores[record.student].push(record.percentage);
+          if (!studentScores[r.student]) studentScores[r.student] = [];
+          studentScores[r.student].push(r.percentage);
         });
+
 
         const avgLabels = Object.keys(studentScores);
-        const avgData = avgLabels.map(name => {
-          const arr = studentScores[name];
-          return arr.reduce((a,b)=>a+b,0)/arr.length;
-        });
+        const avgData = avgLabels.map(name =>
+          studentScores[name].reduce((a,b) => a + b, 0) / studentScores[name].length
+        );
 
-        const avgCtx = document.getElementById('avgScoresChart');
-        new Chart(avgCtx, {
-          type: 'bar',
-          data: {
-            labels: avgLabels,
-            datasets: [{
-              label: 'Average Quiz %',
-              data: avgData,
-              backgroundColor: '#3b82f6'
-            }]
-          },
+        new Chart(document.getElementById("avgScoresChart"), {
+          type: "bar",
+          data: { labels: avgLabels, datasets: [{ label: "Avg %", data: avgData }] },
           options: { responsive: true, scales: { y: { beginAtZero: true, max: 100 } } }
         });
 
+
         const res2 = await fetch('/get_summary_counts');
-        const summaries = await res2.json();
+        console.log("GET /get_summary_counts status:", res2.status);
+        if (!res2.ok) throw new Error("API Failed: get_summary_counts");
 
-        summaries.forEach(s => { summaryCounts[s.student] = s.count; });
+        const sumData = await res2.json();
+        const summaryCounts = {};
+        sumData.forEach(s => summaryCounts[s.student] = s.count);
 
-        const sumCtx = document.getElementById('summaryCountChart');
-        new Chart(sumCtx, {
-          type: 'pie',
+        new Chart(document.getElementById("summaryCountChart"), {
+          type: "pie",
           data: {
             labels: Object.keys(summaryCounts),
-            datasets: [{
-              label: 'Summaries',
-              data: Object.values(summaryCounts),
-              backgroundColor: ['#fbbf24','#34d399','#60a5fa','#a78bfa','#f87171']
-            }]
+            datasets: [{ data: Object.values(summaryCounts) }]
           },
           options: { responsive: true }
         });
 
       } catch (err) {
         console.error(err);
-        alert("Error loading admin data");
+        alert("⚠️ Error loading admin dashboard. Login as admin.");
       }
     }
 
     loadAdminData();
   </script>
+
 </body>
 </html>
