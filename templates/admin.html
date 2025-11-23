@@ -30,7 +30,53 @@
     .chart-card{background:rgba(255,255,255,0.02);border-radius:12px;padding:18px;border:1px solid var(--glass-border);}
     table{width:100%;border-collapse:collapse;color:var(--text);}
     th,td{padding:12px 16px;border-bottom:1px solid rgba(255,255,255,0.02);}
-    footer{text-align:center;color:var(--muted);margin-top:25px;}
+    footer {
+  margin-top: 30px;
+  padding: 28px 4vw;
+  background: #020617;
+  border-top: 1px solid rgba(148, 163, 184, 0.4);
+  box-shadow: 0 -10px 40px rgba(15, 23, 42, 0.9);
+}
+
+.footer-grid {
+  max-width: 1180px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 20px;
+}
+
+.footer-grid h4 {
+  margin-bottom: 8px;
+  color: var(--text-main);
+}
+
+footer p {
+  color: var(--text-muted);
+  margin: 8px 0 0;
+}
+
+.footer-grid a {
+  color: var(--text-muted);
+  text-decoration: none;
+  display: block;
+  margin: 4px 0;
+  font-size: 0.94rem;
+  transition: color 0.2s ease, transform 0.2s ease;
+}
+
+.footer-grid a:hover {
+  color: var(--accent-soft);
+  transform: translateX(2px);
+}
+
+.copyright {
+  text-align: center;
+  color: var(--text-muted);
+  margin-top: 14px;
+  font-size: 0.9rem;
+}
+
   </style>
 </head>
 
@@ -77,7 +123,29 @@
     </table>
   </div>
 
-  <footer>© 2025 EduAcademy | Admin Dashboard by Raunak</footer>
+  <footer>
+    <div class="footer-grid">
+      <div>
+        <h4>Educademy</h4>
+        <p style="color:var(--muted); margin:8px 0 0">
+          Empowering learners worldwide with interactive quizzes and comprehensive tracking.
+        </p>
+      </div>
+      <div>
+        <h4>Quick Links</h4>
+        <a href="/">Dashboard</a><a href="#">Courses</a><a href="/mcq">Quizzes</a><a href="/profile">Progress</a>
+      </div>
+      <div>
+        <h4>Support</h4>
+        <a href="#">Help Center</a><a href="/contact">Contact Us</a><a href="#">Privacy Policy</a><a href="#">Terms of Service</a>
+      </div>
+      <div>
+        <h4>Connect</h4>
+        <a href="#">GitHub</a><a href="#">Twitter</a><a href="#">LinkedIn</a><a href="mailto:adarsh.kushwaha_cs23@gla.ac.in">Email</a>
+      </div>
+    </div>
+    <div class="copyright">&copy; 2025 Educademy. All rights reserved.</div>
+  </footer>
 
   <!-- ====================== FIXED JAVASCRIPT ====================== -->
   <script>

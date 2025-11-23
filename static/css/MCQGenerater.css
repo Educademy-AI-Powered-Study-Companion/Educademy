@@ -357,15 +357,7 @@ button[type="submit"]:hover{ transform:translateY(-2px); box-shadow:0 24px 60px 
 #quizScore h3{ margin:0; font-size:1.6rem; color:var(--accent-2) }
 #quizScore p{ margin:0.4rem 0 0; color:var(--muted) }
 
-/* FOOTER */
-footer{
-  margin-top:auto;padding:28px 4vw;background:transparent;border-top:1px solid rgba(255,255,255,0.02)
-}
-.footer-grid{ max-width:1180px;margin:0 auto; display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:20px }
-.footer-grid h4{ color:var(--text); margin-bottom:.6rem }
-.footer-grid a{ color:var(--muted); text-decoration:none; display:block; margin:6px 0; transition:color .12s ease }
-.footer-grid a:hover{ color:var(--accent-2); transform:translateX(3px) }
-.copyright{ text-align:center; color:var(--muted); margin-top:14px; font-size:.92rem }
+
 
 /* responsive */
 @media (max-width:768px){
@@ -378,4 +370,50 @@ footer{
 @media (max-width:480px){
   .welcome-section h2{ font-size:1.6rem }
   .lines{ padding:0 2.4vw }
+}
+footer {
+  margin-top: 30px;
+  padding: 28px 4vw;
+  background: #020617;
+  border-top: 1px solid rgba(148, 163, 184, 0.4);
+  box-shadow: 0 -10px 40px rgba(15, 23, 42, 0.9);
+}
+
+.footer-grid {
+  max-width: 1180px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 20px;
+}
+
+.footer-grid h4 {
+  margin-bottom: 8px;
+  color: var(--text-main);
+}
+
+footer p {
+  color: var(--text-muted);
+  margin: 8px 0 0;
+}
+
+.footer-grid a {
+  color: var(--text-muted);
+  text-decoration: none;
+  display: block;
+  margin: 4px 0;
+  font-size: 0.94rem;
+  transition: color 0.2s ease, transform 0.2s ease;
+}
+
+.footer-grid a:hover {
+  color: var(--accent-soft);
+  transform: translateX(2px);
+}
+
+.copyright {
+  text-align: center;
+  color: var(--text-muted);
+  margin-top: 14px;
+  font-size: 0.9rem;
 }

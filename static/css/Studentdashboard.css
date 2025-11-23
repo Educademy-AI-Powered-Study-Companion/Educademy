@@ -266,24 +266,51 @@ canvas {
 .meh { background: linear-gradient(90deg,#9ca3af,#6b7280) }
 
 footer {
-  margin-top: 24px;
-  padding: 28px 3vw;
-  background: transparent;
-  border-top: 1px solid rgba(255,255,255,0.02);
+  margin-top: 30px;
+  padding: 28px 4vw;
+  background: #020617;
+  border-top: 1px solid rgba(148, 163, 184, 0.4);
+  box-shadow: 0 -10px 40px rgba(15, 23, 42, 0.9);
 }
+
 .footer-grid {
   max-width: 1180px;
   margin: 0 auto;
   display: grid;
-  grid-template-columns: repeat(auto-fit,minmax(180px,1fr));
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 20px;
 }
-.footer-grid h4 { color: var(--text); margin-bottom: 8px }
-.footer-grid a { color: var(--muted); text-decoration: none; display:block; margin:6px 0 }
-.footer-grid a:hover { color: var(--accent-2); transform: translateX(4px) }
-.copyright { color: var(--muted); text-align:center; margin-top:12px; font-size: .92rem }
 
+.footer-grid h4 {
+  margin-bottom: 8px;
+  color: var(--text-main);
+}
 
+footer p {
+  color: var(--text-muted);
+  margin: 8px 0 0;
+}
+
+.footer-grid a {
+  color: var(--text-muted);
+  text-decoration: none;
+  display: block;
+  margin: 4px 0;
+  font-size: 0.94rem;
+  transition: color 0.2s ease, transform 0.2s ease;
+}
+
+.footer-grid a:hover {
+  color: var(--accent-soft);
+  transform: translateX(2px);
+}
+
+.copyright {
+  text-align: center;
+  color: var(--text-muted);
+  margin-top: 14px;
+  font-size: 0.9rem;
+}
 @media (max-width: 980px) {
   .main { grid-template-columns: 1fr; padding: 0 3vw; }
   .avatar { width: 116px; height: 116px; }
