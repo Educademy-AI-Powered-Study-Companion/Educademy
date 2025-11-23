@@ -17,12 +17,13 @@ logger = logging.getLogger(__name__)
 
 class RAGChatbot:
     """A chatbot that uses Ollama and a local RAG pipeline with caching.
-    Uses LCEL (LangChain Expression Language) for the chain definition.
+    Supports both RAG (document-based) and Normal (general knowledge) chat.
     """
 
     def __init__(self):
         logging.info("Initializing RAG Chatbot with Ollama.")
         
+        # Initialize the LLM
         self.llm = Ollama(
             model=config.CHATBOT_MODEL_ID, 
             temperature=0.2, 
@@ -31,6 +32,7 @@ class RAGChatbot:
         
         device = "cuda" if torch.cuda.is_available() else "cpu"
         
+        # Initialize Embeddings
         self.embedding_model = HuggingFaceEmbeddings(
             model_name=config.EMBEDDING_MODEL_ID,
             model_kwargs={"device": device},
@@ -40,14 +42,17 @@ class RAGChatbot:
         self.retriever = None
         self._document_hash: Optional[str] = None
         self._vector_store_cache: Dict[str, FAISS] = {}
-        self._prompt_template: Optional[PromptTemplate] = None
+        
+        # Prompts
+        self._rag_prompt: Optional[PromptTemplate] = None
+        self._chat_prompt: Optional[PromptTemplate] = None
 
         logging.info(f"RAG Chatbot initialized with '{config.CHATBOT_MODEL_ID}' on {device}.")
 
-    def _get_prompt_template(self) -> PromptTemplate:
-        if self._prompt_template is None:
+    def _get_rag_prompt(self) -> PromptTemplate:
+        if self._rag_prompt is None:
             template = """Use the following pieces of context to answer the user's question.
-If the answer is not in the context, say you don't know. Do not fabricate answers.
+If the answer is not in the context, strictly say "I cannot find the answer in the document" and then try to answer from your own knowledge, explicitly stating "However, from my general knowledge:".
 
 Context:
 {context}
@@ -56,8 +61,20 @@ Question:
 {question}
 
 Helpful Answer:"""
-            self._prompt_template = PromptTemplate.from_template(template)
-        return self._prompt_template
+            self._rag_prompt = PromptTemplate.from_template(template)
+        return self._rag_prompt
+
+    def _get_normal_chat_prompt(self) -> PromptTemplate:
+        if self._chat_prompt is None:
+            template = """You are a helpful and intelligent AI assistant named Edu. 
+Answer the user's question clearly and concisely.
+
+Question:
+{question}
+
+Answer:"""
+            self._chat_prompt = PromptTemplate.from_template(template)
+        return self._chat_prompt
 
     def setup_document(self, full_text: str):
         """Process and index a document for RAG with caching."""
@@ -67,6 +84,7 @@ Helpful Answer:"""
 
         doc_hash = hashlib.md5(full_text.encode("utf-8")).hexdigest()
 
+        # Check cache first
         if doc_hash == self._document_hash and doc_hash in self._vector_store_cache:
             logging.info("Reusing cached vector store.")
             self.retriever = self._vector_store_cache[doc_hash].as_retriever(
@@ -90,6 +108,7 @@ Helpful Answer:"""
         try:
             vector_store = FAISS.from_texts(texts=chunks, embedding=self.embedding_model)
             
+            # Simple LRU-like cache limit
             self._vector_store_cache[doc_hash] = vector_store
             if len(self._vector_store_cache) > 5:
                 first_key = next(iter(self._vector_store_cache))
@@ -111,28 +130,38 @@ Helpful Answer:"""
         return "\n\n".join(doc.page_content for doc in docs)
 
     def answer_query(self, query: str) -> str:
-        """Answer a user's query using LCEL."""
-        if self.retriever is None:
-            return "I haven't read a document yet. Please upload a file in the chat interface."
-
+        """Answer a user's query using RAG if context exists, otherwise normal chat."""
         if not query.strip():
             return "Please provide a valid question."
 
         try:
-            rag_chain = (
-                {
-                    "context": self.retriever | self._format_docs, 
-                    "question": RunnablePassthrough()
-                }
-                | self._get_prompt_template()
-                | self.llm
-                | StrOutputParser()
-            )
-
-            logging.info(f"Invoking chain for query: '{query}'")
-            response = rag_chain.invoke(query)
-            return response.strip()
+            # MODE 1: RAG (Document Based)
+            if self.retriever:
+                logging.info(f"RAG Mode active for query: '{query}'")
+                rag_chain = (
+                    {
+                        "context": self.retriever | self._format_docs, 
+                        "question": RunnablePassthrough()
+                    }
+                    | self._get_rag_prompt()
+                    | self.llm
+                    | StrOutputParser()
+                )
+                response = rag_chain.invoke(query)
+                return response.strip()
+            
+            # MODE 2: Normal Chat (No Document)
+            else:
+                logging.info(f"Normal Chat Mode active for query: '{query}'")
+                normal_chain = (
+                    {"question": RunnablePassthrough()}
+                    | self._get_normal_chat_prompt()
+                    | self.llm
+                    | StrOutputParser()
+                )
+                response = normal_chain.invoke(query)
+                return response.strip()
 
         except Exception as e:
-            logging.error("Error during RAG chain invocation", exc_info=True)
-            return "I encountered an error while processing your request. Ensure Ollama is running."
+            logging.error("Error during chain invocation", exc_info=True)
+            return "I encountered an error while processing your request. Please ensure Ollama is running."

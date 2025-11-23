@@ -5,6 +5,7 @@ from flask_bcrypt import Bcrypt
 from flask_session import Session
 from functools import wraps
 import os
+import logging
 
 from modules import content_processor, mcq_generator, utils, rag_chatbot, config
 
@@ -22,6 +23,8 @@ app.config["SESSION_PERMANENT"] = True
 app.config["PERMANENT_SESSION_LIFETIME"] = timedelta(days=7)
 
 Session(app)
+
+# Initialize Chatbot
 bot = rag_chatbot.RAGChatbot()
 
 # ---------------- DATABASE ----------------
@@ -168,6 +171,34 @@ def admin_dashboard():
     return render_template('admin.html')
 
 
+# ---------------- CHATBOT API ----------------
+@app.route('/ask-ai', methods=['POST'])
+@login_required
+def ask_ai():
+    """
+    Handles chat requests. 
+    1. If a file is provided, it updates the RAG context.
+    2. Answers the user's question using RAG (if context exists) or Normal Chat.
+    """
+    question = request.form.get("question", "").strip()
+    file = request.files.get("file")
+
+    # Handle File Upload for RAG
+    if file:
+        logging.info(f"File uploaded in chat: {file.filename}")
+        text = utils.extract_text_from_file(file, app.config['UPLOAD_FOLDER'])
+        
+        if text and not text.startswith("Error"):
+            bot.setup_document(text)
+        elif text.startswith("Error"):
+             return jsonify({"answer": f"⚠️ Failed to read file: {text}"}), 400
+
+    # Get Answer from Bot
+    answer = bot.answer_query(question)
+    
+    return jsonify({"answer": answer})
+
+
 # ---------------- SUMMARY SAVE ----------------
 @app.route('/summarize', methods=['POST'])
 @login_required
@@ -262,7 +293,6 @@ def analytics_summary(student):
         {"$group": {"_id": "$filename", "avg": {"$avg": "$percentage"}}}
     ]))
 
-    # (summary_types left empty for now)
     return jsonify({
         "quiz_trend": [
             {"date": q["timestamp"].isoformat(), "percentage": q["percentage"]}
@@ -307,13 +337,10 @@ def leaderboard_data():
     return jsonify(data)
 
 
-# ---------------- ADMIN ANALYTICS APIs (USED BY admin.html) ----------------
+# ---------------- ADMIN ANALYTICS APIs ----------------
 @app.route('/get_analytics_all')
 @admin_required
 def get_analytics_all():
-    """
-    Return all quiz results for admin dashboard.
-    """
     records = list(quiz_results_collection.find({}, {"_id": 0}))
     return jsonify(records)
 
@@ -321,9 +348,6 @@ def get_analytics_all():
 @app.route('/get_summary_counts')
 @admin_required
 def get_summary_counts():
-    """
-    Return number of summaries per student for admin chart.
-    """
     pipeline = [
         {"$group": {"_id": "$student", "count": {"$sum": 1}}}
     ]
