@@ -175,15 +175,9 @@ def admin_dashboard():
 @app.route('/ask-ai', methods=['POST'])
 @login_required
 def ask_ai():
-    """
-    Handles chat requests. 
-    1. If a file is provided, it updates the RAG context.
-    2. Answers the user's question using RAG (if context exists) or Normal Chat.
-    """
     question = request.form.get("question", "").strip()
     file = request.files.get("file")
 
-    # Handle File Upload for RAG
     if file:
         logging.info(f"File uploaded in chat: {file.filename}")
         text = utils.extract_text_from_file(file, app.config['UPLOAD_FOLDER'])
@@ -193,9 +187,7 @@ def ask_ai():
         elif text.startswith("Error"):
              return jsonify({"answer": f"⚠️ Failed to read file: {text}"}), 400
 
-    # Get Answer from Bot
     answer = bot.answer_query(question)
-    
     return jsonify({"answer": answer})
 
 
@@ -218,7 +210,8 @@ def summarize():
         "student": session["username"],
         "source_filename": file.filename if file else "text_input",
         "timestamp": datetime.utcnow(),
-        "action": "summary"
+        "action": "summary",
+        "summary_type": "bullet_point"   # NEW 🔹
     })
 
     return jsonify({"summary": summary})
@@ -243,7 +236,8 @@ def generate_quiz():
         "student": session["username"],
         "source_filename": file.filename if file else "text_input",
         "timestamp": datetime.utcnow(),
-        "action": "quiz"
+        "action": "quiz",
+        "summary_type": "mcq"     # NEW 🔹
     })
 
     return jsonify({"mcqs": mcqs})
@@ -256,7 +250,7 @@ def submit_mcqs():
     data = request.json or {}
 
     score = int(data.get("score", 0))
-    total = max(int(data.get("total", 1)), 1)  # avoid divide by 0
+    total = max(int(data.get("total", 1)), 1)
 
     record = {
         "student": session.get("username"),
@@ -293,6 +287,12 @@ def analytics_summary(student):
         {"$group": {"_id": "$filename", "avg": {"$avg": "$percentage"}}}
     ]))
 
+
+    summary_types = list(summaries_collection.aggregate([
+        {"$match": {"student": student}},
+        {"$group": {"_id": "$summary_type", "count": {"$sum": 1}}}
+    ]))
+
     return jsonify({
         "quiz_trend": [
             {"date": q["timestamp"].isoformat(), "percentage": q["percentage"]}
@@ -302,39 +302,10 @@ def analytics_summary(student):
             {"file": s["_id"], "avg": round(s["avg"], 2)}
             for s in score_by_file
         ],
-        "summary_types": []
+        "summary_types": [
+            {"type": s["_id"], "count": s["count"]} for s in summary_types
+        ]
     })
-
-
-# ---------------- LEADERBOARD (OPTIONAL) ----------------
-@app.route('/leaderboard_data')
-@login_required
-def leaderboard_data():
-    data = list(quiz_results_collection.aggregate([
-        {
-            "$group": {
-                "_id": "$student",
-                "bestScore": {"$max": "$percentage"},
-                "avgScore": {"$avg": "$percentage"},
-                "quizCount": {"$sum": 1}
-            }
-        },
-        {
-            "$project": {
-                "student": "$_id",
-                "_id": 0,
-                "bestScore": 1,
-                "avgScore": 1,
-                "quizCount": 1
-            }
-        },
-        {"$sort": {"bestScore": -1}}
-    ]))
-
-    for i, row in enumerate(data):
-        row["rank"] = i + 1
-
-    return jsonify(data)
 
 
 # ---------------- ADMIN ANALYTICS APIs ----------------
@@ -356,7 +327,6 @@ def get_summary_counts():
     return jsonify(result)
 
 
-# ---------------- MISC ----------------
 @app.route('/health')
 def health():
     return jsonify({"status": "ok"})
